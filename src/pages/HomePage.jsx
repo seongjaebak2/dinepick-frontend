@@ -20,9 +20,9 @@ const HomePage = () => {
       <CategoryChips />
 
       {/* Reusable content sections */}
-      <SectionGrid title="Popular Restaurants" />
-      <SectionGrid title="New Openings" />
-      <SectionGrid title="Available Now" />
+      <SectionGrid title="섹션 제목" />
+      <SectionGrid title="섹션 제목" />
+      <SectionGrid title="섹션 제목" />
 
       {/* Testimonials section */}
       <Testimonials />

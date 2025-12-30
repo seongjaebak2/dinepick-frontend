@@ -1,9 +1,9 @@
 import "./Testimonials.css";
 
 const TESTIMONIALS = [
-  { message: "Amazing service and great UI!", author: "User A" },
-  { message: "Booking was fast and easy.", author: "User B" },
-  { message: "Highly recommended restaurant platform.", author: "User C" },
+  { message: "훌륭한 칭찬 한마디", author: "이름 A" },
+  { message: "환상적인 피드백.", author: "이름 B" },
+  { message: "진정으로 빛나는 리뷰.", author: "이름 C" },
 ];
 
 /*
@@ -14,7 +14,7 @@ const Testimonials = () => {
   return (
     <section className="testimonials">
       <div className="container">
-        <h2>User Reviews</h2>
+        <h2>유저 리뷰</h2>
 
         <div className="testimonial-grid">
           {TESTIMONIALS.map(({ message, author }, index) => (

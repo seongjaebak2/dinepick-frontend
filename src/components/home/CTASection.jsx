@@ -8,11 +8,11 @@ const CTASection = () => {
   return (
     <section className="cta-section">
       <div className="container cta-box">
-        <h2>Ready to Make a Reservation?</h2>
+        <h2>DINE PICK</h2>
 
         <div className="cta-actions">
-          <button className="primary-button">Sign Up</button>
-          <button className="secondary-button">Browse Restaurants</button>
+          <button className="primary-button">로그인</button>
+          <button className="secondary-button">회원가입</button>
         </div>
       </div>
     </section>

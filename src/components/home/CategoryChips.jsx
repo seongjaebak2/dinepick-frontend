@@ -1,14 +1,14 @@
 import "./CategoryChips.css";
 
 const CATEGORIES = [
-  "All",
-  "Korean",
-  "Chinese",
-  "Japanese",
-  "Western",
-  "Italian",
-  "Cafe",
-  "Bar",
+  "전체",
+  "한식",
+  "중식",
+  "일식",
+  "양식",
+  "이탈리안",
+  "카페",
+  "바",
 ];
 
 /*
