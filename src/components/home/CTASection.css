@@ -1,4 +1,4 @@
-.cta {
+.cta-section {
   padding: 26px 0 10px;
 }
 
@@ -13,10 +13,10 @@
   gap: 16px;
 }
 
-.cta-title {
+.cta-box h2 {
   margin: 0;
   font-size: 16px;
-  font-weight: 800;
+  font-weight: 900;
 }
 
 .cta-actions {
@@ -24,22 +24,30 @@
   gap: 10px;
 }
 
-.cta-primary {
+.primary-button {
   border: none;
   background: #111;
   color: #fff;
   padding: 10px 14px;
   border-radius: 10px;
   cursor: pointer;
-  font-weight: 700;
+  font-weight: 800;
 }
 
-.cta-ghost {
+.secondary-button {
   border: 1px solid #ddd;
   background: #fff;
   color: #111;
   padding: 10px 14px;
   border-radius: 10px;
   cursor: pointer;
-  font-weight: 700;
+  font-weight: 800;
+}
+
+/* Responsive */
+@media (max-width: 640px) {
+  .cta-box {
+    flex-direction: column;
+    align-items: flex-start;
+  }
 }

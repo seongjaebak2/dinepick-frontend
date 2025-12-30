@@ -5,18 +5,32 @@ import SectionGrid from "../components/home/SectionGrid";
 import Testimonials from "../components/home/Testimonials";
 import CTASection from "../components/home/CTASection";
 
-export default function HomePage() {
+/*
+  HomePage
+  - Page-level component
+  - Responsible only for layout composition
+*/
+const HomePage = () => {
   return (
     <Layout>
+      {/* Hero section */}
       <Hero />
+
+      {/* Category filter section */}
       <CategoryChips />
 
-      <SectionGrid title="섹션 제목" />
-      <SectionGrid title="섹션 제목" />
-      <SectionGrid title="섹션 제목" />
+      {/* Reusable content sections */}
+      <SectionGrid title="Popular Restaurants" />
+      <SectionGrid title="New Openings" />
+      <SectionGrid title="Available Now" />
 
+      {/* Testimonials section */}
       <Testimonials />
+
+      {/* Call-to-action section */}
       <CTASection />
     </Layout>
   );
-}
+};
+
+export default HomePage;

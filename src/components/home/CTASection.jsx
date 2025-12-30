@@ -1,17 +1,22 @@
 import "./CTASection.css";
 
-export default function CTASection() {
+/*
+  CTASection
+  - Encourages user action
+*/
+const CTASection = () => {
   return (
-    <section className="cta">
-      <div className="container">
-        <div className="cta-box">
-          <h2 className="cta-title">섹션 제목</h2>
-          <div className="cta-actions">
-            <button className="cta-primary">버튼</button>
-            <button className="cta-ghost">보조 버튼</button>
-          </div>
+    <section className="cta-section">
+      <div className="container cta-box">
+        <h2>Ready to Make a Reservation?</h2>
+
+        <div className="cta-actions">
+          <button className="primary-button">Sign Up</button>
+          <button className="secondary-button">Browse Restaurants</button>
         </div>
       </div>
     </section>
   );
-}
+};
+
+export default CTASection;

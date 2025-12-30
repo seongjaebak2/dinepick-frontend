@@ -1,32 +1,32 @@
 import "./Testimonials.css";
 
-const REVIEWS = [
-  { text: "“훌륭한 감성 레이아웃”", name: "이름", role: "설명" },
-  { text: "“밸런스적인 UI도 좋다”", name: "이름", role: "설명" },
-  { text: "“진정으로 빛나는 리뷰”", name: "이름", role: "설명" },
+const TESTIMONIALS = [
+  { message: "Amazing service and great UI!", author: "User A" },
+  { message: "Booking was fast and easy.", author: "User B" },
+  { message: "Highly recommended restaurant platform.", author: "User C" },
 ];
 
-export default function Testimonials() {
+/*
+  Testimonials
+  - User feedback section
+*/
+const Testimonials = () => {
   return (
-    <section className="t-section">
+    <section className="testimonials">
       <div className="container">
-        <h2 className="t-title">섹션 제목</h2>
+        <h2>User Reviews</h2>
 
-        <div className="t-grid">
-          {REVIEWS.map((r, i) => (
-            <div key={i} className="t-card">
-              <div className="t-text">{r.text}</div>
-              <div className="t-user">
-                <div className="t-avatar" />
-                <div>
-                  <div className="t-name">{r.name}</div>
-                  <div className="t-role">{r.role}</div>
-                </div>
-              </div>
+        <div className="testimonial-grid">
+          {TESTIMONIALS.map(({ message, author }, index) => (
+            <div key={index} className="testimonial-card">
+              <p>"{message}"</p>
+              <span>- {author}</span>
             </div>
           ))}
         </div>
       </div>
     </section>
   );
-}
+};
+
+export default Testimonials;
