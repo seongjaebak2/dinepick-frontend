@@ -31,6 +31,9 @@ const Header = ({ children }) => {
               <span>
                 {user?.name ? `${user.name} (${user.role})` : "로그인됨"}
               </span>
+              <Link to="/me" className="nav-link">
+                마이페이지
+              </Link>
               <button onClick={onLogout}>로그아웃</button>
             </>
           ) : (
