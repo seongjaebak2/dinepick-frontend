@@ -6,8 +6,8 @@ import LoginPage from "./pages/LoginPage";
 import SignupPage from "./pages/SignupPage";
 import { ToastContainer } from "react-toastify";
 import { AuthProvider } from "./contexts/AuthContext";
-import Header from "./components/layout/Header";
 import AuthRedirect from "./routes/AuthRedirect";
+import MyPage from "./pages/MyPage";
 
 const App = () => {
   return (
