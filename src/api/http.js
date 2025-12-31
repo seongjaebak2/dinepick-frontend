@@ -1,7 +1,7 @@
 import axios from "axios";
 
 export const http = axios.create({
-  baseURL: "", // vite proxy 사용 => /api로 바로 쏘면 됨
+  baseURL: "http://localhost:8080",
   headers: { "Content-Type": "application/json" },
 });
 
