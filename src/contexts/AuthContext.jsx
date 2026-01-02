@@ -31,7 +31,7 @@ export function AuthProvider({ children }) {
 
   useEffect(() => {
     loadMe();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    // 컴포넌트 최초 렌더링 시 사용자 정보를 한 번만 불러오기 위해 ESLint 경고를 무시함
   }, []);
 
   const signup = async (payload) => {
