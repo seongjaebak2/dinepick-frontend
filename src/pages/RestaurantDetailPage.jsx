@@ -1,7 +1,8 @@
-import { useMemo } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useParams } from "react-router-dom";
 import Layout from "../components/layout/Layout";
-import { RESTAURANT_ITEMS, getRestaurantById } from "../data/restaurants";
+import { fetchRestaurantById, fetchRestaurants } from "../api/restaurants";
+
 import DetailHero from "../components/restaurant-detail/DetailHero";
 import DetailInfoCard from "../components/restaurant-detail/DetailInfoCard";
 import DetailMenuCard from "../components/restaurant-detail/DetailMenuCard";
@@ -14,21 +15,77 @@ import "./RestaurantDetailPage.css";
 /*
   RestaurantDetailPage
   - Container page that composes sections
+  - Uses backend API instead of dummy data
 */
 const RestaurantDetailPage = () => {
   const { id } = useParams();
 
-  const restaurant = useMemo(() => getRestaurantById({ id }), [id]);
+  const [restaurant, setRestaurant] = useState(null);
+  const [relatedItems, setRelatedItems] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [notFound, setNotFound] = useState(false);
 
-  const relatedItems = useMemo(() => {
-    if (!restaurant) return [];
-    return RESTAURANT_ITEMS.filter((item) => item.id !== restaurant.id).slice(
-      0,
-      3
+  // ✅ 상세 불러오기
+  useEffect(() => {
+    let alive = true;
+    setLoading(true);
+    setNotFound(false);
+
+    fetchRestaurantById(id)
+      .then((data) => {
+        if (!alive) return;
+        setRestaurant(data);
+      })
+      .catch(() => {
+        if (!alive) return;
+        setNotFound(true);
+        setRestaurant(null);
+      })
+      .finally(() => {
+        if (!alive) return;
+        setLoading(false);
+      });
+
+    return () => {
+      alive = false;
+    };
+  }, [id]);
+
+  // ✅ 관련 레스토랑(임시): 목록에서 3개만 가져와서 현재 id 제외
+  useEffect(() => {
+    let alive = true;
+
+    fetchRestaurants({ page: 0, size: 6 })
+      .then((pageData) => {
+        if (!alive) return;
+        const items = (pageData?.content ?? [])
+          .filter((x) => String(x.id) !== String(id))
+          .slice(0, 3);
+        setRelatedItems(items);
+      })
+      .catch(() => {
+        if (!alive) return;
+        setRelatedItems([]);
+      });
+
+    return () => {
+      alive = false;
+    };
+  }, [id]);
+
+  // 로딩
+  if (loading) {
+    return (
+      <Layout>
+        <div className="container detail-container">
+          <h2 className="detail-not-found-title">로딩중...</h2>
+        </div>
+      </Layout>
     );
-  }, [restaurant]);
+  }
 
-  if (!restaurant) {
+  // 없음(404/에러)
+  if (notFound || !restaurant) {
     return (
       <Layout>
         <div className="container detail-container">

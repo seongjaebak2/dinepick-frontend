@@ -1,95 +1,65 @@
-import { useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import { useSearchParams } from "react-router-dom";
 import Layout from "../components/layout/Layout";
 import FilterBar from "../components/restaurants/FilterBar";
 import RestaurantGrid from "../components/restaurants/RestaurantGrid";
 import Pagination from "../components/restaurants/Pagination";
-import { RESTAURANT_ITEMS } from "../data/restaurants";
+import { fetchRestaurants } from "../api/restaurants";
 
 const PAGE_SIZE = 6;
 
-/*
-  RestaurantsPage
-  - Displays search results by region
-  - Includes filter bar, grid, and pagination
-*/
 const RestaurantsPage = () => {
   const [searchParams] = useSearchParams();
+  const keyword = searchParams.get("region") ?? "";
 
-  const regionQuery = searchParams.get("region") ?? "";
-  const [selectedCategory, setSelectedCategory] = useState("All");
-  const [sortOption, setSortOption] = useState("recommended");
-  const [page, setPage] = useState(1);
+  const [page, setPage] = useState(0);
+  const [data, setData] = useState(null);
+  const [loading, setLoading] = useState(false);
 
-  const filteredItems = useMemo(() => {
-    const byRegion = RESTAURANT_ITEMS.filter(({ region }) =>
-      regionQuery.trim().length === 0
-        ? true
-        : region.includes(regionQuery.trim())
-    );
+  useEffect(() => {
+    setLoading(true);
+    fetchRestaurants({
+      keyword,
+      page,
+      size: PAGE_SIZE,
+    })
+      .then(setData)
+      .finally(() => setLoading(false));
+  }, [keyword, page]);
 
-    const byCategory =
-      selectedCategory === "All"
-        ? byRegion
-        : byRegion.filter(({ category }) => category === selectedCategory);
-
-    const sorted = [...byCategory].sort((a, b) => {
-      if (sortOption === "rating") return b.rating - a.rating;
-      if (sortOption === "name") return a.name.localeCompare(b.name);
-      return b.rating - a.rating;
-    });
-
-    return sorted;
-  }, [regionQuery, selectedCategory, sortOption]);
-
-  const totalPages = useMemo(() => {
-    return Math.max(1, Math.ceil(filteredItems.length / PAGE_SIZE));
-  }, [filteredItems.length]);
-
-  const pagedItems = useMemo(() => {
-    const safePage = Math.min(page, totalPages);
-    const start = (safePage - 1) * PAGE_SIZE;
-    return filteredItems.slice(start, start + PAGE_SIZE);
-  }, [filteredItems, page, totalPages]);
-
-  const handleCategoryChange = ({ category }) => {
-    setSelectedCategory(category);
-    setPage(1);
-  };
-
-  const handleSortChange = ({ sort }) => {
-    setSortOption(sort);
-    setPage(1);
-  };
-
-  const handlePageChange = ({ nextPage }) => {
-    setPage(nextPage);
-  };
+  const items = data?.content ?? [];
+  const totalPages = data?.totalPages ?? 1;
+  const totalElements = data?.totalElements ?? 0;
 
   return (
     <Layout>
       <div className="container" style={{ padding: "22px 0" }}>
         <h1 style={{ margin: "0 0 6px", letterSpacing: "-0.3px" }}>
-          {regionQuery ? `"${regionQuery}" 검색 결과` : "Restaurants"}
+          {keyword ? `"${keyword}" 검색 결과` : "Restaurants"}
         </h1>
         <p style={{ margin: 0, color: "#6b7280", fontSize: 14 }}>
-          {filteredItems.length} results found
+          {totalElements} results found
         </p>
 
+        {/* FilterBar는 UI만 유지 (정렬/카테고리는 나중에 API 확장) */}
         <FilterBar
-          region={regionQuery}
-          selectedCategory={selectedCategory}
-          sortOption={sortOption}
-          onCategoryChange={handleCategoryChange}
-          onSortChange={handleSortChange}
+          region={keyword}
+          selectedCategory="All"
+          sortOption="recommended"
+          onCategoryChange={() => {}}
+          onSortChange={() => {}}
         />
 
-        <RestaurantGrid items={pagedItems} />
+        {loading ? (
+          <div style={{ padding: 20 }}>불러오는 중...</div>
+        ) : (
+          <RestaurantGrid items={items} />
+        )}
 
         <Pagination
-          currentPage={page}
+          currentPage={page + 1} // UI는 1부터
           totalPages={totalPages}
-          onChange={handlePageChange}
+          onChange={({ nextPage }) => setPage(nextPage - 1)}
         />
       </div>
     </Layout>

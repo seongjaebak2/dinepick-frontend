@@ -1,5 +1,6 @@
 import "./CategoryChips.css";
 
+// 카테고리 목록
 const CATEGORIES = [
   "전체",
   "한식",
@@ -13,7 +14,7 @@ const CATEGORIES = [
 
 /*
   CategoryChips
-  - Restaurant category filter UI
+  - 식당 카테고리 필터 칩 섹션
 */
 const CategoryChips = () => {
   return (

@@ -5,7 +5,9 @@ import "./DetailMapCard.css";
   - Placeholder map section
 */
 const DetailMapCard = ({ restaurant }) => {
-  const { name, address } = restaurant;
+  if (!restaurant) return null;
+
+  const { name = "", address = "" } = restaurant;
 
   return (
     <article className="detail-card">
@@ -16,8 +18,8 @@ const DetailMapCard = ({ restaurant }) => {
       <div className="detail-map">
         <div className="detail-map-pin">📍</div>
         <div className="detail-map-text">
-          <div className="detail-map-name">{name}</div>
-          <div className="detail-map-address">{address}</div>
+          <div className="detail-map-name">{name || " "}</div>
+          <div className="detail-map-address">{address || " "}</div>
         </div>
       </div>
 
