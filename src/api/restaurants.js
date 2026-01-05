@@ -1,5 +1,6 @@
 import { http } from "./api";
 
+// 식당 목록 조회 API(페이지네이션 및 검색 지원)
 export async function fetchRestaurants({
   keyword = "",
   page = 0,
@@ -11,6 +12,7 @@ export async function fetchRestaurants({
   return res.data; // Spring Page 형태
 }
 
+// 식당 상세 조회 API
 export async function fetchRestaurantById(id) {
   const res = await http.get(`/api/restaurants/${id}`);
   return res.data;

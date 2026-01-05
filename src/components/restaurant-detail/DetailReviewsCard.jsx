@@ -1,7 +1,15 @@
 import "./DetailReviewsCard.css";
 
+/*
+  DetailReviewsCard
+  - Reviews list
+  - Placeholder until review API is ready
+*/
 const DetailReviewsCard = ({ restaurant }) => {
-  const reviews = restaurant?.reviews ?? []; // ✅ undefined 방지
+  if (!restaurant) return null;
+
+  // 아직 백엔드에 없음
+  const reviews = restaurant.reviews ?? [];
 
   return (
     <article className="detail-card">
@@ -14,17 +22,23 @@ const DetailReviewsCard = ({ restaurant }) => {
       ) : (
         <ul className="detail-reviews">
           {reviews.map((r, idx) => (
-            <li key={r.id ?? idx} className="detail-review-item">
+            <li
+              key={r.id ?? `${r.name ?? "review"}-${idx}`}
+              className="detail-review-item"
+            >
               <div className="detail-review-top">
                 <strong className="detail-review-name">
-                  {r.name ?? "익명"}
+                  {r.name || "익명"}
                 </strong>
+
                 {r.date && <span className="detail-review-date">{r.date}</span>}
               </div>
-              {r.rating != null && (
+
+              {typeof r.rating === "number" && (
                 <div className="detail-review-rating">⭐ {r.rating}</div>
               )}
-              <p className="detail-review-text">{r.text ?? r.comment ?? ""}</p>
+
+              <p className="detail-review-text">{r.text || r.comment || " "}</p>
             </li>
           ))}
         </ul>

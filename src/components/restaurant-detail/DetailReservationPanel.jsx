@@ -6,7 +6,12 @@ import "./DetailReservationPanel.css";
   - Sticky reservation form
 */
 const DetailReservationPanel = ({ restaurant }) => {
-  const { name } = restaurant;
+  if (!restaurant) return null;
+
+  const {
+    name = "",
+    maxPeoplePerReservation = 6, // 백엔드에 있음
+  } = restaurant;
 
   const [reservationDate, setReservationDate] = useState("");
   const [reservationTime, setReservationTime] = useState("11:30");
@@ -16,9 +21,11 @@ const DetailReservationPanel = ({ restaurant }) => {
     // Placeholder for API integration later
     // eslint-disable-next-line no-alert
     alert(
-      `Reservation request\n- Restaurant: ${name}\n- Date: ${
-        reservationDate || "(not selected)"
-      }\n- Time: ${reservationTime}\n- People: ${reservationPeople}`
+      `Reservation request
+- Restaurant: ${name || "(unknown)"}
+- Date: ${reservationDate || "(not selected)"}
+- Time: ${reservationTime}
+- People: ${reservationPeople}`
     );
   };
 
@@ -67,11 +74,13 @@ const DetailReservationPanel = ({ restaurant }) => {
           value={reservationPeople}
           onChange={(e) => setReservationPeople(e.target.value)}
         >
-          {["1", "2", "3", "4", "5", "6"].map((count) => (
-            <option key={count} value={count}>
-              {count}명
-            </option>
-          ))}
+          {Array.from({ length: maxPeoplePerReservation }, (_, i) => i + 1).map(
+            (count) => (
+              <option key={count} value={String(count)}>
+                {count}명
+              </option>
+            )
+          )}
         </select>
       </label>
 
