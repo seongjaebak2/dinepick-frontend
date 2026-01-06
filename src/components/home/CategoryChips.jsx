@@ -1,7 +1,6 @@
 import "./CategoryChips.css";
 
-// 카테고리 목록
-const CATEGORIES = [
+const CATEGORY_OPTIONS = [
   "전체",
   "한식",
   "중식",
@@ -13,24 +12,34 @@ const CATEGORIES = [
 ];
 
 /*
-  CategoryChips
-  - 식당 카테고리 필터 칩 섹션
+  FilterBar
+  - Category chips + sort select
 */
-const CategoryChips = () => {
+const FilterBar = ({
+  region,
+  selectedCategory,
+  sortOption,
+  onCategoryChange,
+  onSortChange,
+}) => {
   return (
-    <section className="category-chips">
-      <div className="container chips-container">
-        {CATEGORIES.map((category, index) => (
+    <div className="filter-bar">
+      <div className="filter-chips">
+        {CATEGORY_OPTIONS.map((category) => (
           <button
             key={category}
-            className={`chip ${index === 0 ? "active" : ""}`}
+            type="button"
+            className={`filter-chip ${
+              selectedCategory === category ? "active" : ""
+            }`}
+            onClick={() => onCategoryChange({ category })}
           >
             {category}
           </button>
         ))}
       </div>
-    </section>
+    </div>
   );
 };
 
-export default CategoryChips;
+export default FilterBar;

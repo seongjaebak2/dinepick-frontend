@@ -1,32 +1,112 @@
-.category-chips {
-  padding: 12px 0 6px;
+/* =========================
+   Filter Bar Wrapper
+   ========================= */
+.filter-bar {
+  width: 100%;
+  margin: 28px 0;
+  display: flex;
+  justify-content: center; /* 전체를 가운데로 */
 }
 
-.chips-container {
+/* =========================
+   Chips Container
+   - SectionGrid의 container 폭과 맞추기
+   ========================= */
+.filter-chips {
+  width: 100%;
+  max-width: 1200px; /*  섹션 컨테이너와 동일하게 */
+  padding: 0 16px; /*  좌우 여백(모바일 포함) */
+
   display: flex;
-  gap: 10px;
   flex-wrap: wrap;
+  gap: 10px;
+
+  justify-content: center; /*  칩도 가운데 정렬 */
   align-items: center;
 }
 
-.chip {
-  border: 1px solid #eee;
-  background: #fff;
-  padding: 8px 12px;
+/* =========================
+   Chip Button
+   ========================= */
+.filter-chip {
+  appearance: none;
+  border: 1px solid #e5e7eb;
+  background: #ffffff;
+  color: #374151;
+
+  padding: 8px 16px;
   border-radius: 999px;
-  font-size: 12px;
+
+  font-size: 0.92rem;
+  font-weight: 600;
+  line-height: 1;
+
   cursor: pointer;
-  transition: transform 0.12s ease, border-color 0.12s ease,
-    background 0.12s ease;
+  user-select: none;
+
+  transition: transform 0.15s ease, background-color 0.2s ease,
+    border-color 0.2s ease, color 0.2s ease, box-shadow 0.2s ease;
 }
 
-.chip:hover {
+/* Hover */
+.filter-chip:hover {
+  background-color: #f9fafb;
+  border-color: #d1d5db;
   transform: translateY(-1px);
-  border-color: #cfcfcf;
+  box-shadow: 0 6px 18px rgba(17, 24, 39, 0.06);
 }
 
-.chip.active {
-  background: #111;
-  color: #fff;
-  border-color: #111;
+/* Active */
+.filter-chip.active {
+  background-color: #111827;
+  border-color: #111827;
+  color: #ffffff;
+  box-shadow: 0 10px 26px rgba(17, 24, 39, 0.18);
+}
+
+/* Active hover */
+.filter-chip.active:hover {
+  background-color: #1f2937;
+  border-color: #1f2937;
+}
+
+/* Focus (접근성) */
+.filter-chip:focus-visible {
+  outline: 3px solid rgba(59, 130, 246, 0.35);
+  outline-offset: 2px;
+}
+
+/* =========================
+   Responsive
+   ========================= */
+@media (max-width: 768px) {
+  .filter-bar {
+    margin: 18px 0;
+  }
+
+  /*  모바일에서는 가로 스크롤로 UX 좋아짐 */
+  .filter-chips {
+    justify-content: flex-start;
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+
+    gap: 8px;
+    padding: 0 12px;
+  }
+
+  /* 스크롤바 숨김(선택) */
+  .filter-chips::-webkit-scrollbar {
+    height: 6px;
+  }
+  .filter-chips::-webkit-scrollbar-thumb {
+    background: rgba(17, 24, 39, 0.15);
+    border-radius: 999px;
+  }
+
+  .filter-chip {
+    flex-shrink: 0; /*  줄바꿈 대신 스크롤 */
+    padding: 7px 14px;
+    font-size: 0.88rem;
+  }
 }

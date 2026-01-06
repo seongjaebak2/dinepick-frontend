@@ -19,9 +19,7 @@ const HomePage = () => {
       <CategoryChips />
 
       {/* Reusable content sections */}
-      <SectionGrid title="섹션 제목" />
-      <SectionGrid title="섹션 제목" />
-      <SectionGrid title="섹션 제목" />
+      <SectionGrid title="추천 식당" />
 
       {/* Testimonials section */}
       <Testimonials />
