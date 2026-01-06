@@ -1,27 +1,38 @@
 import React, { useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
-import { useAuth } from "../contexts/AuthContext";
+import { Link, useNavigate, useLocation } from "react-router-dom";
 import { toast } from "react-toastify";
-import "./AuthPage.css";
+import { useAuth } from "../contexts/AuthContext";
+import "./AuthPage.css"; // 공용 CSS (로그인/회원가입 같이 사용 추천)
 
 const LoginPage = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [loading, setLoading] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
+
   const { login } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
+  const from = location.state?.from;
+
+  // 로그인 후 원래 있던 페이지로 복귀 (없으면 홈)
+  const redirectTo = from?.pathname
+    ? `${from.pathname}${from.search || ""}${from.hash || ""}`
+    : "/";
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setLoading(true);
+    setSubmitting(true);
+
     try {
       await login({ email, password });
       toast.success("성공적으로 로그인했습니다!");
-      navigate("/");
+      // 로그인 후 원래 있던 페이지로 복귀
+      navigate(redirectTo, { replace: true });
     } catch (err) {
-      toast.error("로그인 실패. 아이디와 비밀번호를 확인해주세요.");
+      console.error("LOGIN ERROR:", err?.response?.data || err);
+      toast.error(err?.message || "로그인 실패 (이메일/비밀번호 확인)");
     } finally {
-      setLoading(false);
+      setSubmitting(false);
     }
   };
 
@@ -32,14 +43,14 @@ const LoginPage = () => {
 
         <form onSubmit={handleSubmit} className="auth-form">
           <div className="auth-field">
-            <label className="auth-label">아이디</label>
+            <label className="auth-label">이메일</label>
             <input
               className="auth-input"
-              type="text"
+              type="email"
               required
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              placeholder="아이디를 입력하세요"
+              placeholder="example@mail.com"
               autoComplete="email"
             />
           </div>
@@ -57,8 +68,8 @@ const LoginPage = () => {
             />
           </div>
 
-          <button className="auth-btn" type="submit" disabled={loading}>
-            {loading ? "로그인 중..." : "로그인하기"}
+          <button className="auth-btn" type="submit" disabled={submitting}>
+            {submitting ? "로그인 중..." : "로그인하기"}
           </button>
         </form>
 
