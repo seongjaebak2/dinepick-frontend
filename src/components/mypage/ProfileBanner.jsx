@@ -1,11 +1,16 @@
 import "./ProfileBanner.css";
+import { useAuth } from "../../contexts/AuthContext";
 
 /*
   ProfileBanner
-  - Red profile area like screenshot
+  - 로그인한 회원 이름 표시
+  - CtaSection과 동일한 AuthContext 사용
 */
-const ProfileBanner = ({ user }) => {
-  const { name, subtitle } = user;
+const ProfileBanner = () => {
+  const { user } = useAuth();
+
+  const name = user?.name ?? "회원";
+  const subtitle = user?.email ?? "오늘도 맛있는 하루 보내세요!";
 
   return (
     <section className="profile-banner">
