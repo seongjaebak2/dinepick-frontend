@@ -8,20 +8,20 @@ const HERO_IMAGE =
 /*
   Hero
   - Main introduction section
-  - Navigates to restaurants page with region query
+  - Navigates to restaurants page with keyword query
 */
 const Hero = () => {
   const navigate = useNavigate();
-  const [region, setRegion] = useState("");
+  const [keyword, setKeyword] = useState("");
 
-  const trimmedRegion = region.trim();
-  const isDisabled = trimmedRegion.length === 0;
+  const trimmedKeyword = keyword.trim();
+  const isDisabled = trimmedKeyword.length === 0;
 
   const handleSubmit = (event) => {
     event.preventDefault();
     if (isDisabled) return;
 
-    navigate(`/restaurants?region=${encodeURIComponent(trimmedRegion)}`);
+    navigate(`/restaurants?keyword=${encodeURIComponent(trimmedKeyword)}`);
   };
 
   return (
@@ -34,10 +34,10 @@ const Hero = () => {
           <form className="hero-search" onSubmit={handleSubmit}>
             <input
               type="text"
-              value={region}
-              onChange={(e) => setRegion(e.target.value)}
-              placeholder="지역을 입력하세요 (예: 부산, 서울)"
-              aria-label="지역 검색"
+              value={keyword}
+              onChange={(e) => setKeyword(e.target.value)}
+              placeholder="지역 또는 키워드를 입력하세요 (예: 부산, 스시)"
+              aria-label="레스토랑 검색"
               autoComplete="off"
               spellCheck={false}
             />

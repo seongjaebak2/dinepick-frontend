@@ -114,3 +114,23 @@
   color: #fff;
   border-color: var(--primary);
 }
+/* =========================
+   카테고리 칩
+   ========================= */
+
+.restaurant-chip {
+  display: inline-flex;
+  align-items: center;
+
+  padding: 6px 10px;
+  border-radius: 999px;
+
+  background: #111827;
+  color: #ffffff;
+
+  font-size: 11px;
+  font-weight: 700;
+  line-height: 1;
+
+  white-space: nowrap;
+}

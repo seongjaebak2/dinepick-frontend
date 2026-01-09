@@ -11,22 +11,36 @@ const DetailHero = ({ restaurant }) => {
   const {
     name = "",
     address = "",
+    category = "",
     // 아직 백엔드에 없음
-    category = "카테고리(백엔드에 없음)",
     rating = null,
     region = "지역(백엔드에 없음)",
     priceRange = "가격대(백엔드에 없음)",
+
+    // 변경: 상세 API는 imageUrls 사용
+    imageUrls = [],
+    // (호환용) 혹시 예전 데이터가 imageUrl로 올 수도 있으니 남겨둠
     imageUrl = "",
   } = restaurant;
 
   const fallbackImage = "/sushi.jpg";
 
+  // 대표 이미지: imageUrls[0] (썸네일) 우선, 없으면 imageUrl, 없으면 fallback
+  const heroImage =
+    (Array.isArray(imageUrls) && imageUrls.length > 0 ? imageUrls[0] : "") ||
+    imageUrl ||
+    fallbackImage;
+
   return (
     <section className="detail-hero">
       <img
         className="detail-hero-image"
-        src={imageUrl || fallbackImage}
+        src={heroImage}
         alt={name || "restaurant"}
+        loading="lazy"
+        onError={(e) => {
+          e.currentTarget.src = fallbackImage;
+        }}
       />
 
       <div className="detail-hero-overlay">

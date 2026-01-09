@@ -8,7 +8,6 @@ import "./RestaurantCard.css";
 */
 const RestaurantCard = ({ item }) => {
   const sushi = "/sushi.jpg";
-
   const navigate = useNavigate();
 
   // 백엔드에 없는 필드는 기본값으로 처리
@@ -19,8 +18,11 @@ const RestaurantCard = ({ item }) => {
     category = "",
     rating = null,
     priceRange = "",
-    imageUrl = sushi, // 기본 이미지 설정 현재는 더미 이미지
+    thumbnailUrl = "",
   } = item || {};
+
+  // ✅ 썸네일 없으면 기본 이미지
+  const imageSrc = thumbnailUrl || sushi;
 
   const handleOpenDetail = () => {
     if (!id) return;
@@ -39,9 +41,17 @@ const RestaurantCard = ({ item }) => {
       aria-label={`Open ${name || "restaurant"} details`}
     >
       <div className="restaurant-image">
-        {/*  이미지 없으면 빈 영역 유지 */}
-        {imageUrl ? (
-          <img src={imageUrl} alt={name} />
+        {/* ✅ thumbnailUrl 없으면 sushi로 fallback */}
+        {imageSrc ? (
+          <img
+            src={imageSrc}
+            alt={name}
+            loading="lazy"
+            onError={(e) => {
+              // 이미지 깨지면 fallback
+              e.currentTarget.src = sushi;
+            }}
+          />
         ) : (
           <div className="restaurant-image-placeholder" />
         )}
@@ -60,7 +70,13 @@ const RestaurantCard = ({ item }) => {
 
         <div className="restaurant-meta">
           <span className="restaurant-pill">{region || " "}</span>
-          <span className="restaurant-pill">{category || " "}</span>
+
+          {category && (
+            <span className="restaurant-chip" aria-label="Category">
+              {category}
+            </span>
+          )}
+
           <span className="restaurant-pill">{priceRange || " "}</span>
         </div>
 

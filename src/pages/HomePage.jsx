@@ -1,27 +1,24 @@
+import { useState } from "react";
 import Layout from "../components/layout/Layout";
 import Hero from "../components/home/Hero";
 import CategoryChips from "../components/home/CategoryChips";
 import SectionGrid from "../components/home/SectionGrid";
 import Testimonials from "../components/home/Testimonials";
 
-/*
-  HomePage
-  - Page-level component
-  - Responsible only for layout composition
-*/
 const HomePage = () => {
+  const [homeCategory, setHomeCategory] = useState("ALL");
+
   return (
     <Layout>
-      {/* Hero section */}
       <Hero />
 
-      {/* Category filter section */}
-      <CategoryChips />
+      <CategoryChips
+        selectedCategory={homeCategory}
+        onCategoryChange={({ category }) => setHomeCategory(category)}
+      />
 
-      {/* Reusable content sections */}
-      <SectionGrid title="추천 식당" />
+      <SectionGrid title="추천 식당" category={homeCategory} />
 
-      {/* Testimonials section */}
       <Testimonials />
     </Layout>
   );

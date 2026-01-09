@@ -1,112 +1,67 @@
 /* =========================
-   Filter Bar Wrapper
+   Category Chips (Home)
    ========================= */
-.filter-bar {
-  width: 100%;
-  margin: 28px 0;
-  display: flex;
-  justify-content: center; /* 전체를 가운데로 */
-}
 
-/* =========================
-   Chips Container
-   - SectionGrid의 container 폭과 맞추기
-   ========================= */
-.filter-chips {
-  width: 100%;
-  max-width: 1200px; /*  섹션 컨테이너와 동일하게 */
-  padding: 0 16px; /*  좌우 여백(모바일 포함) */
+.category-chips {
+  margin-top: 18px;
 
   display: flex;
   flex-wrap: wrap;
   gap: 10px;
 
-  justify-content: center; /*  칩도 가운데 정렬 */
-  align-items: center;
+  justify-content: center; /* ✅ 가로 가운데 */
 }
 
-/* =========================
-   Chip Button
-   ========================= */
-.filter-chip {
+/* 기본 칩 */
+.chip {
   appearance: none;
-  border: 1px solid #e5e7eb;
+  border: 1px solid var(--border);
   background: #ffffff;
-  color: #374151;
+  color: #111827;
 
-  padding: 8px 16px;
+  padding: 8px 14px;
   border-radius: 999px;
 
-  font-size: 0.92rem;
+  font-size: 13px;
   font-weight: 600;
-  line-height: 1;
 
   cursor: pointer;
-  user-select: none;
+  line-height: 1;
 
-  transition: transform 0.15s ease, background-color 0.2s ease,
-    border-color 0.2s ease, color 0.2s ease, box-shadow 0.2s ease;
+  transition: background-color 0.15s ease, color 0.15s ease,
+    border-color 0.15s ease, transform 0.12s ease;
 }
 
-/* Hover */
-.filter-chip:hover {
-  background-color: #f9fafb;
-  border-color: #d1d5db;
-  transform: translateY(-1px);
-  box-shadow: 0 6px 18px rgba(17, 24, 39, 0.06);
+/* hover */
+.chip:hover {
+  background: #f3f4f6;
 }
 
-/* Active */
-.filter-chip.active {
-  background-color: #111827;
-  border-color: #111827;
+/*  선택(active) 상태: 어두운 배경 + 흰 글자 */
+.chip.active {
+  background: #111827;
   color: #ffffff;
-  box-shadow: 0 10px 26px rgba(17, 24, 39, 0.18);
+  border-color: #111827;
+  font-weight: 700;
 }
 
-/* Active hover */
-.filter-chip.active:hover {
-  background-color: #1f2937;
-  border-color: #1f2937;
+/* active + hover */
+.chip.active:hover {
+  background: #0f172a;
 }
 
-/* Focus (접근성) */
-.filter-chip:focus-visible {
-  outline: 3px solid rgba(59, 130, 246, 0.35);
-  outline-offset: 2px;
+/* 포커스 접근성 */
+.chip:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.35);
 }
 
 /* =========================
-   Responsive
+   Mobile tweak
    ========================= */
-@media (max-width: 768px) {
-  .filter-bar {
-    margin: 18px 0;
-  }
-
-  /*  모바일에서는 가로 스크롤로 UX 좋아짐 */
-  .filter-chips {
-    justify-content: flex-start;
-    flex-wrap: nowrap;
-    overflow-x: auto;
-    -webkit-overflow-scrolling: touch;
-
-    gap: 8px;
-    padding: 0 12px;
-  }
-
-  /* 스크롤바 숨김(선택) */
-  .filter-chips::-webkit-scrollbar {
-    height: 6px;
-  }
-  .filter-chips::-webkit-scrollbar-thumb {
-    background: rgba(17, 24, 39, 0.15);
-    border-radius: 999px;
-  }
-
-  .filter-chip {
-    flex-shrink: 0; /*  줄바꿈 대신 스크롤 */
-    padding: 7px 14px;
-    font-size: 0.88rem;
+@media (max-width: 480px) {
+  .chip {
+    padding: 7px 12px;
+    font-size: 12px;
   }
 }

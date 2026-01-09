@@ -1,45 +1,32 @@
 import "./CategoryChips.css";
 
+// label: 실질적 렌더링되는 텍스트, value: backend에 전달하는 값
 const CATEGORY_OPTIONS = [
-  "전체",
-  "한식",
-  "중식",
-  "일식",
-  "양식",
-  "이탈리안",
-  "카페",
-  "바",
+  { label: "전체", value: "ALL" },
+  { label: "한식", value: "KOREAN" },
+  { label: "중식", value: "CHINESE" },
+  { label: "일식", value: "JAPANESE" },
+  { label: "양식", value: "WESTERN" },
+  { label: "카페", value: "CAFE" },
+  { label: "기타", value: "ETC" },
 ];
 
-/*
-  FilterBar
-  - Category chips + sort select
-*/
-const FilterBar = ({
-  region,
-  selectedCategory,
-  sortOption,
-  onCategoryChange,
-  onSortChange,
-}) => {
+export default function CategoryChips({
+  selectedCategory = "ALL",
+  onCategoryChange = () => {}, // Home에서 props 안 줘도 안 터지게 안전장치
+}) {
   return (
-    <div className="filter-bar">
-      <div className="filter-chips">
-        {CATEGORY_OPTIONS.map((category) => (
-          <button
-            key={category}
-            type="button"
-            className={`filter-chip ${
-              selectedCategory === category ? "active" : ""
-            }`}
-            onClick={() => onCategoryChange({ category })}
-          >
-            {category}
-          </button>
-        ))}
-      </div>
+    <div className="category-chips">
+      {CATEGORY_OPTIONS.map((opt) => (
+        <button
+          key={opt.value}
+          type="button"
+          className={`chip ${selectedCategory === opt.value ? "active" : ""}`}
+          onClick={() => onCategoryChange({ category: opt.value })}
+        >
+          {opt.label}
+        </button>
+      ))}
     </div>
   );
-};
-
-export default FilterBar;
+}

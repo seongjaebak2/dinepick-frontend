@@ -9,23 +9,43 @@ import { fetchRestaurants } from "../api/restaurants";
 const PAGE_SIZE = 6;
 
 const RestaurantsPage = () => {
-  const [searchParams] = useSearchParams();
-  const keyword = searchParams.get("region") ?? "";
+  const [searchParams, setSearchParams] = useSearchParams();
+
+  const keyword = searchParams.get("keyword") ?? "";
+  const category = searchParams.get("category") ?? "ALL";
 
   const [page, setPage] = useState(0);
+  const [sortOption, setSortOption] = useState("recommended");
+
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(false);
+
+  // keyword/category 바뀌면 첫 페이지로
+  useEffect(() => {
+    setPage(0);
+  }, [keyword, category]);
 
   useEffect(() => {
     setLoading(true);
     fetchRestaurants({
       keyword,
+      category,
       page,
       size: PAGE_SIZE,
     })
       .then(setData)
       .finally(() => setLoading(false));
-  }, [keyword, page]);
+  }, [keyword, category, page]);
+
+  // 검색어 submit: 빈값이면 전체보기
+  const handleKeywordSubmit = (nextKeyword) => {
+    const params = new URLSearchParams(searchParams);
+
+    if (!nextKeyword) params.delete("keyword");
+    else params.set("keyword", nextKeyword);
+
+    setSearchParams(params);
+  };
 
   const items = data?.content ?? [];
   const totalPages = data?.totalPages ?? 1;
@@ -41,13 +61,18 @@ const RestaurantsPage = () => {
           {totalElements} results found
         </p>
 
-        {/* FilterBar는 UI만 유지 (정렬/카테고리는 나중에 API 확장) */}
         <FilterBar
-          region={keyword}
-          selectedCategory="All"
-          sortOption="recommended"
-          onCategoryChange={() => {}}
-          onSortChange={() => {}}
+          keyword={keyword}
+          selectedCategory={category}
+          sortOption={sortOption}
+          onCategoryChange={({ category: nextCategory }) => {
+            const params = new URLSearchParams(searchParams);
+            if (nextCategory === "ALL") params.delete("category");
+            else params.set("category", nextCategory);
+            setSearchParams(params);
+          }}
+          onSortChange={({ sort }) => setSortOption(sort)}
+          onKeywordSubmit={handleKeywordSubmit}
         />
 
         {loading ? (
@@ -57,7 +82,7 @@ const RestaurantsPage = () => {
         )}
 
         <Pagination
-          currentPage={page + 1} // UI는 1부터
+          currentPage={page + 1}
           totalPages={totalPages}
           onChange={({ nextPage }) => setPage(nextPage - 1)}
         />

@@ -13,9 +13,8 @@ import DetailRelatedSection from "../components/restaurant-detail/DetailRelatedS
 import "./RestaurantDetailPage.css";
 
 /*
-  RestaurantDetailPage
+  식당 상세 페이지
   - Container page that composes sections
-  - Uses backend API instead of dummy data
 */
 const RestaurantDetailPage = () => {
   const { id } = useParams();
@@ -25,7 +24,7 @@ const RestaurantDetailPage = () => {
   const [loading, setLoading] = useState(true);
   const [notFound, setNotFound] = useState(false);
 
-  // ✅ 상세 불러오기
+  // 상세 불러오기
   useEffect(() => {
     let alive = true;
     setLoading(true);
@@ -51,7 +50,7 @@ const RestaurantDetailPage = () => {
     };
   }, [id]);
 
-  // ✅ 관련 레스토랑(임시): 목록에서 3개만 가져와서 현재 id 제외
+  // 관련 레스토랑(임시): 목록에서 3개만 가져와서 현재 id 제외
   useEffect(() => {
     let alive = true;
 

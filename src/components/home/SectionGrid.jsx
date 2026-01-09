@@ -5,14 +5,15 @@ import { useNavigate } from "react-router-dom";
 
 const FALLBACK_IMG = "/sushi.jpg"; // public/sushi.jpg
 
-const SectionGrid = ({ title, keyword = "", page = 0, size = 6 }) => {
+/**
+ * Home SectionGrid
+ * - 홈 추천 식당 전용
+ * - category로만 필터
+ * - 항상 첫 페이지 + size 고정
+ */
+const SectionGrid = ({ title, category = "ALL", size = 6 }) => {
   const navigate = useNavigate();
   const [items, setItems] = useState([]);
-  const [pageInfo, setPageInfo] = useState({
-    totalPages: 0,
-    totalElements: 0,
-    number: 0,
-  });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
@@ -24,15 +25,15 @@ const SectionGrid = ({ title, keyword = "", page = 0, size = 6 }) => {
         setLoading(true);
         setError("");
 
-        const data = await fetchRestaurants({ keyword, page, size });
+        const data = await fetchRestaurants({
+          category, // 홈 카테고리 필터
+          page: 0,
+          size,
+        });
+
         if (!alive) return;
 
         setItems(Array.isArray(data?.content) ? data.content : []);
-        setPageInfo({
-          totalPages: data?.totalPages ?? 0,
-          totalElements: data?.totalElements ?? 0,
-          number: data?.number ?? 0,
-        });
       } catch (e) {
         console.error(e);
         if (!alive) return;
@@ -47,17 +48,13 @@ const SectionGrid = ({ title, keyword = "", page = 0, size = 6 }) => {
     return () => {
       alive = false;
     };
-  }, [keyword, page, size]);
+  }, [category, size]);
 
   return (
     <section className="section-grid">
       <div className="container">
         <div className="section-head">
           <h2 className="section-title">{title}</h2>
-          <p className="section-sub">
-            총 {pageInfo.totalElements}개 · {pageInfo.number + 1}/
-            {pageInfo.totalPages || 1} 페이지
-          </p>
         </div>
 
         {loading && <p className="section-grid-state">불러오는 중...</p>}
@@ -67,32 +64,40 @@ const SectionGrid = ({ title, keyword = "", page = 0, size = 6 }) => {
         )}
 
         <div className="grid">
-          {items.map((r) => (
-            <article
-              key={r.id}
-              className="card"
-              role="button"
-              tabIndex={0}
-              onClick={() => navigate(`/restaurants/${r.id}`)}
-              onKeyDown={(e) => {
-                if (e.key === "Enter" || e.key === " ")
-                  navigate(`/restaurants/${r.id}`);
-              }}
-            >
-              <img
-                src={FALLBACK_IMG}
-                alt={r.name}
-                onError={(e) => (e.currentTarget.src = FALLBACK_IMG)}
-              />
-              <div className="card-body">
-                <h3 className="card-title">{r.name}</h3>
-                <p className="card-description">{r.description}</p>
-                <p className="card-meta">
-                  {r.address} · 최대 {r.maxPeoplePerReservation}명
-                </p>
-              </div>
-            </article>
-          ))}
+          {items.map((r) => {
+            // 썸네일 적용
+            const imgSrc = r.thumbnailUrl || FALLBACK_IMG;
+
+            return (
+              <article
+                key={r.id}
+                className="card"
+                role="button"
+                tabIndex={0}
+                onClick={() => navigate(`/restaurants/${r.id}`)}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter" || e.key === " ")
+                    navigate(`/restaurants/${r.id}`);
+                }}
+              >
+                <img
+                  src={imgSrc}
+                  alt={r.name}
+                  loading="lazy"
+                  onError={(e) => {
+                    e.currentTarget.src = FALLBACK_IMG;
+                  }}
+                />
+                <div className="card-body">
+                  <h3 className="card-title">{r.name}</h3>
+                  <p className="card-description">{r.description}</p>
+                  <p className="card-meta">
+                    {r.address} · 최대 {r.maxPeoplePerReservation}명
+                  </p>
+                </div>
+              </article>
+            );
+          })}
         </div>
       </div>
     </section>
