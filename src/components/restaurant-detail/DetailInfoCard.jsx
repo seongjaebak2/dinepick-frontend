@@ -11,12 +11,35 @@ const DetailInfoCard = ({ restaurant }) => {
   const {
     address = "",
     description = "",
-    maxPeoplePerReservation = "",
-    // 아직 백엔드에 없음
-    openingHours = "###",
-    phone = "###",
-    priceRange = "###",
+    maxPeoplePerReservation = null,
+
+    // 더미 기본값 제거
+    openingHours = "",
+    phone = "",
+    priceRange = "",
   } = restaurant;
+
+  const maxPeopleNum =
+    maxPeoplePerReservation === null || maxPeoplePerReservation === undefined
+      ? null
+      : Number(maxPeoplePerReservation);
+
+  // 값 있는 것만 렌더
+  const rows = [
+    { label: "영업시간", value: openingHours?.trim?.() ? openingHours : "" },
+    { label: "주소", value: address?.trim?.() ? address : "" },
+    { label: "전화", value: phone?.trim?.() ? phone : "" },
+    { label: "가격대", value: priceRange?.trim?.() ? priceRange : "" },
+    {
+      label: "최대 예약 인원",
+      value:
+        Number.isFinite(maxPeopleNum) && maxPeopleNum > 0
+          ? `${maxPeopleNum}명`
+          : "",
+    },
+  ].filter((r) => Boolean(r.value));
+
+  const hasDescription = Boolean(description?.trim?.());
 
   return (
     <article className="detail-card">
@@ -24,36 +47,24 @@ const DetailInfoCard = ({ restaurant }) => {
         <h2 className="detail-card-title">레스토랑 정보</h2>
       </header>
 
-      <div className="detail-info-list">
-        <div className="detail-info-row">
-          <span className="detail-info-label">영업시간</span>
-          <span className="detail-info-value">{openingHours || " "}</span>
+      {rows.length > 0 ? (
+        <div className="detail-info-list">
+          {rows.map(({ label, value }) => (
+            <div className="detail-info-row" key={label}>
+              <span className="detail-info-label">{label}</span>
+              <span className="detail-info-value">{value}</span>
+            </div>
+          ))}
         </div>
+      ) : (
+        <p className="detail-description" style={{ marginTop: 0 }}>
+          제공된 레스토랑 정보가 아직 없어요.
+        </p>
+      )}
 
-        <div className="detail-info-row">
-          <span className="detail-info-label">주소</span>
-          <span className="detail-info-value">{address || " "}</span>
-        </div>
-
-        <div className="detail-info-row">
-          <span className="detail-info-label">전화</span>
-          <span className="detail-info-value">{phone || " "}</span>
-        </div>
-
-        <div className="detail-info-row">
-          <span className="detail-info-label">가격대</span>
-          <span className="detail-info-value">{priceRange || " "}</span>
-        </div>
-
-        <div className="detail-info-row">
-          <span className="detail-info-label">최대 예약 인원</span>
-          <span className="detail-info-value">
-            {maxPeoplePerReservation ? `${maxPeoplePerReservation}명` : " "}
-          </span>
-        </div>
-      </div>
-
-      <p className="detail-description">{description || " "}</p>
+      {hasDescription ? (
+        <p className="detail-description">{description}</p>
+      ) : null}
     </article>
   );
 };

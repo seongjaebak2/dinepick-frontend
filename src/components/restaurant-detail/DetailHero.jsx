@@ -14,10 +14,12 @@ const DetailHero = ({ restaurant }) => {
     category = "",
     // 아직 백엔드에 없음
     rating = null,
-    region = "지역(백엔드에 없음)",
-    priceRange = "가격대(백엔드에 없음)",
 
-    // 변경: 상세 API는 imageUrls 사용
+    // ✅ 더미 기본값 제거 (없으면 그냥 숨기기)
+    region = "",
+    priceRange = "",
+
+    // 상세 API는 imageUrls 사용
     imageUrls = [],
     // (호환용) 혹시 예전 데이터가 imageUrl로 올 수도 있으니 남겨둠
     imageUrl = "",
@@ -31,14 +33,24 @@ const DetailHero = ({ restaurant }) => {
     imageUrl ||
     fallbackImage;
 
+  // ✅ 메타 정보: 있는 값만 노출 (dot 자동 처리)
+  const metaItems = [];
+
+  if (typeof rating === "number") metaItems.push(`⭐ ${rating.toFixed(1)}`);
+  if (region) metaItems.push(region);
+  else if (address) metaItems.push(address);
+  if (priceRange) metaItems.push(priceRange);
+
   return (
     <section className="detail-hero">
       <img
         className="detail-hero-image"
         src={heroImage}
-        alt={name || "restaurant"}
+        alt={name ? `${name} 대표 사진` : "레스토랑 대표 사진"}
         loading="lazy"
         onError={(e) => {
+          // ✅ 무한 onError 방지
+          e.currentTarget.onerror = null;
           e.currentTarget.src = fallbackImage;
         }}
       />
@@ -46,30 +58,48 @@ const DetailHero = ({ restaurant }) => {
       <div className="detail-hero-overlay">
         <div className="detail-hero-top">
           <div className="detail-hero-title-group">
-            <div className="detail-hero-category">{category || " "}</div>
+            {/* ✅ category 없으면 아예 숨김 (공백 " " 대신) */}
+            {category ? (
+              <div className="detail-hero-category">{category}</div>
+            ) : null}
 
-            <h1 className="detail-hero-title">{name || " "}</h1>
+            {/* ✅ name 없으면 공백 대신 기본 텍스트 */}
+            <h1 className="detail-hero-title">{name || "레스토랑"}</h1>
 
-            <div className="detail-hero-sub">
-              <span>
-                ⭐ {typeof rating === "number" ? rating.toFixed(1) : " "}
-              </span>
-
-              <span className="detail-hero-dot">•</span>
-
-              <span>{region || address || " "}</span>
-
-              <span className="detail-hero-dot">•</span>
-
-              <span>{priceRange || " "}</span>
-            </div>
+            {/* ✅ 메타가 있을 때만 렌더 */}
+            {metaItems.length > 0 ? (
+              <div className="detail-hero-sub">
+                {metaItems.map((text, idx) => (
+                  <span key={`${text}-${idx}`}>
+                    {idx > 0 ? (
+                      <span className="detail-hero-dot">•</span>
+                    ) : null}
+                    {text}
+                  </span>
+                ))}
+              </div>
+            ) : null}
           </div>
 
           <div className="detail-hero-actions">
-            <button type="button" className="icon-button" aria-label="Like">
+            {/*  찜 기능은 “넘어간다” 했으니 우선 비활성화(원하면 삭제 가능) */}
+            <button
+              type="button"
+              className="icon-button"
+              aria-label="Like"
+              disabled
+              title="찜 기능은 준비 중이에요"
+            >
               ♡
             </button>
-            <button type="button" className="icon-button" aria-label="Share">
+
+            <button
+              type="button"
+              className="icon-button"
+              aria-label="Share"
+              disabled
+              title="공유 기능은 준비 중이에요"
+            >
               ↗
             </button>
           </div>
