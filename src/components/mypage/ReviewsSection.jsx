@@ -6,9 +6,18 @@ import "./ReviewsSection.css";
   - 리뷰 목록 표시
   - props가 없을 때도 안전하게 렌더
 */
-export default function ReviewsSection({ reviews = [] }) {
+export default function ReviewsSection({ reviews }) {
+  const list = Array.isArray(reviews) ? reviews : [];
+
+  // rating 방어용 clamp
+  const clampRating = (value) => {
+    const n = Number(value);
+    if (!Number.isFinite(n)) return 0;
+    return Math.max(0, Math.min(5, Math.floor(n)));
+  };
+
   // 리뷰가 없을 때 빈 상태 UI
-  if (reviews.length === 0) {
+  if (list.length === 0) {
     return (
       <section className="reviews">
         <header className="reviews-header">
@@ -31,24 +40,43 @@ export default function ReviewsSection({ reviews = [] }) {
 
       {/* 리뷰 리스트 */}
       <div className="reviews-list">
-        {reviews.map((r) => (
-          <article key={r.id} className="review-card">
-            {/* 상단: 식당명 / 평점 */}
-            <div className="review-top">
-              <div className="review-restaurant">{r.restaurant}</div>
-              <div className="review-rating">
-                {"★".repeat(r.rating)}
-                {"☆".repeat(Math.max(0, 5 - r.rating))}
+        {list.map((r, idx) => {
+          const rating = clampRating(r?.rating);
+
+          const restaurantName =
+            r?.restaurantName ??
+            r?.restaurant?.name ??
+            r?.restaurant ??
+            "레스토랑";
+
+          const dateText = r?.date ?? r?.createdAt ?? "";
+
+          return (
+            <article
+              key={r?.id ?? `${restaurantName}-${dateText}-${idx}`}
+              className="review-card"
+            >
+              {/* 상단: 식당명 / 평점 */}
+              <div className="review-top">
+                <div className="review-restaurant">{restaurantName}</div>
+                <div className="review-rating" aria-label={`평점 ${rating}점`}>
+                  {"★".repeat(rating)}
+                  {"☆".repeat(5 - rating)}
+                </div>
               </div>
-            </div>
 
-            {/* 작성일 */}
-            <div className="review-date">{r.date}</div>
+              {/* 작성일: 값 있을 때만 */}
+              {dateText ? <div className="review-date">{dateText}</div> : null}
 
-            {/* 리뷰 내용 */}
-            <p className="review-content">{r.content}</p>
-          </article>
-        ))}
+              {/* 리뷰 내용 */}
+              {r?.content ? (
+                <p className="review-content">{r.content}</p>
+              ) : (
+                <p className="review-content muted">리뷰 내용이 없습니다.</p>
+              )}
+            </article>
+          );
+        })}
       </div>
     </section>
   );

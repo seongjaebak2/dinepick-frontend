@@ -1,27 +1,31 @@
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import Layout from "../components/layout/Layout";
 import ProfileBanner from "../components/mypage/ProfileBanner";
-import StatsCards from "../components/mypage/StatsCards";
+
 import MyPageTabs from "../components/mypage/MyPageTabs";
 import ReservationsSection from "../components/mypage/ReservationsSection";
 import FavoritesSection from "../components/mypage/FavoritesSection";
 import ReviewsSection from "../components/mypage/ReviewsSection";
 import { useAuth } from "../contexts/AuthContext";
-import { cancelReservation, fetchMyReservations } from "../api/reservations";
+import {
+  cancelReservation,
+  fetchMyReservations,
+  updateReservation,
+} from "../api/reservations";
 import { toast } from "react-toastify";
 import "./MyPage.css";
-import { updateReservation } from "../api/reservations";
 import EditModal from "../components/common/EditModal";
 
 function toCard(item) {
   return {
     id: item.reservationId,
+    restaurantId: item.restaurantId, // ⭐ 이게 있어야 함
     title: item.restaurantName,
     date: item.reservationDate,
-    time: String(item.reservationTime).slice(0, 5), // "18:00"
+    time: String(item.reservationTime).slice(0, 5),
     people: item.peopleCount,
-    status: "", // 아래에서 예정/지난 채움
-    imageUrl: null, // 응답에 없으니 placeholder
+    status: "",
+    imageUrl: null,
     createdAt: item.createdAt,
   };
 }
@@ -46,7 +50,7 @@ function sortByDateTimeDesc(list = []) {
 
 function isPast(dateStr, timeStr) {
   if (!dateStr || !timeStr) return false;
-  const t = timeStr.length === 5 ? `${timeStr}:00` : timeStr; // "18:00" -> "18:00:00"
+  const t = timeStr.length === 5 ? `${timeStr}:00` : timeStr;
   const dt = new Date(`${dateStr}T${t}`);
   if (Number.isNaN(dt.getTime())) return false;
   return dt.getTime() < Date.now();
@@ -58,14 +62,19 @@ const MyPage = () => {
   // 탭 상태
   const [activeTab, setActiveTab] = useState("reservations");
 
-  // 내 예약 페이지 응답
+  // 예약 페이지 상태
   const [page, setPage] = useState(0);
-  const [size] = useState(10);
+  const size = 10;
+
   const [cancelLoadingId, setCancelLoadingId] = useState(null);
   const [resPage, setResPage] = useState(null);
   const [loadingReservations, setLoadingReservations] = useState(false);
 
-  const loadMyReservations = async () => {
+  // ProfileBanner fallback user (객체 재생성 방지)
+  const fallbackUser = useMemo(() => ({ name: "게스트", email: "" }), []);
+
+  // API 로딩 함수 useCallback으로 고정 (eslint-disable 제거)
+  const loadMyReservations = useCallback(async () => {
     setLoadingReservations(true);
     try {
       const data = await fetchMyReservations({ page, size });
@@ -77,37 +86,40 @@ const MyPage = () => {
     } finally {
       setLoadingReservations(false);
     }
-  };
+  }, [page, size]);
 
-  // 예약 취소 핸들러
-  const handleCancelReservation = async (r) => {
-    if (!r?.id) return;
-
-    const ok = window.confirm("예약을 취소할까요?");
-    if (!ok) return;
-
-    setCancelLoadingId(r.id);
-    try {
-      await cancelReservation(r.id);
-      toast.success("예약이 취소되었습니다.");
-      await loadMyReservations();
-    } catch (err) {
-      const status = err?.response?.status;
-      if (status === 401) toast.error("로그인이 필요합니다.");
-      else if (status === 403)
-        toast.error("본인 예약 또는 관리자만 취소할 수 있습니다.");
-      else if (status === 404) toast.error("예약을 찾을 수 없습니다.");
-      else toast.error("예약 취소 실패");
-    } finally {
-      setCancelLoadingId(null);
-    }
-  };
-  // 탭이 예약 탭일 때만 불러오게 (불필요한 호출 방지)
+  // 탭이 예약 탭일 때만 호출
   useEffect(() => {
     if (activeTab !== "reservations") return;
     loadMyReservations();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [activeTab, page, size]);
+  }, [activeTab, loadMyReservations]);
+
+  // 예약 취소 핸들러
+  const handleCancelReservation = useCallback(
+    async (r) => {
+      if (!r?.id) return;
+
+      const ok = window.confirm("예약을 취소할까요?");
+      if (!ok) return;
+
+      setCancelLoadingId(r.id);
+      try {
+        await cancelReservation(r.id);
+        toast.success("예약이 취소되었습니다.");
+        await loadMyReservations();
+      } catch (err) {
+        const status = err?.response?.status;
+        if (status === 401) toast.error("로그인이 필요합니다.");
+        else if (status === 403)
+          toast.error("본인 예약 또는 관리자만 취소할 수 있습니다.");
+        else if (status === 404) toast.error("예약을 찾을 수 없습니다.");
+        else toast.error("예약 취소 실패");
+      } finally {
+        setCancelLoadingId(null);
+      }
+    },
+    [loadMyReservations]
+  );
 
   const { upcomingReservations, pastReservations } = useMemo(() => {
     const content = resPage?.content ?? [];
@@ -127,67 +139,62 @@ const MyPage = () => {
     };
   }, [resPage]);
 
-  // StatsCards 임시: 서버 연동 전까지 안전한 값
-  const stats = useMemo(() => {
-    const total = resPage?.totalElements ?? 0;
-    return {
-      reservations: total,
-      favorites: 0,
-      reviews: 0,
-    };
-  }, [resPage]);
+  // 아직 연동 전이면 favorites/reviews는 undefined로 두는게 낫다
+  // - FavoritesSection이 favorites를 받으면 API 호출을 안 하도록 만들어졌기 때문
+  const favorites = undefined;
+  const reviews = [];
 
-  // favorites/reviews는 아직 연동 전이면 빈 배열로 안전하게
-  const favorites = useMemo(() => [], []);
-  const reviews = useMemo(() => [], []);
-
-  // 예약 수정 상태 관리 및 핸들러
+  // 예약 수정 상태
   const [editOpen, setEditOpen] = useState(false);
   const [editing, setEditing] = useState(null);
   const [editLoadingId, setEditLoadingId] = useState(null);
 
-  const handleOpenEdit = (r) => {
+  const handleOpenEdit = useCallback((r) => {
     setEditing(r);
     setEditOpen(true);
-  };
+  }, []);
 
-  const handleCloseEdit = () => {
+  const handleCloseEdit = useCallback(() => {
     if (editLoadingId) return;
     setEditOpen(false);
     setEditing(null);
-  };
+  }, [editLoadingId]);
 
-  const handleSubmitEdit = async (payload) => {
-    if (!editing?.id) return;
+  const handleSubmitEdit = useCallback(
+    async (payload) => {
+      if (!editing?.id) return;
 
-    setEditLoadingId(editing.id);
-    try {
-      await updateReservation(editing.id, payload);
+      setEditLoadingId(editing.id);
+      try {
+        await updateReservation(editing.id, payload);
 
-      toast.success("예약이 수정되었습니다.");
-      setEditOpen(false);
-      setEditing(null);
+        toast.success("예약이 수정되었습니다.");
+        setEditOpen(false);
+        setEditing(null);
 
-      await loadMyReservations(); // 수정 후 목록 갱신
-    } catch (err) {
-      const status = err?.response?.status;
-      const msg = err?.response?.data?.message;
+        await loadMyReservations();
+      } catch (err) {
+        const status = err?.response?.status;
+        const msg = err?.response?.data?.message;
 
-      if (status === 401) toast.error("로그인이 필요합니다.");
-      else if (status === 403)
-        toast.error("본인 예약 또는 관리자만 수정할 수 있습니다.");
-      else if (status === 404) toast.error("예약을 찾을 수 없습니다.");
-      else toast.error(msg || "예약 수정에 실패했습니다.");
-    } finally {
-      setEditLoadingId(null);
-    }
-  };
+        if (status === 401) toast.error("로그인이 필요합니다.");
+        else if (status === 403)
+          toast.error("본인 예약 또는 관리자만 수정할 수 있습니다.");
+        else if (status === 404) toast.error("예약을 찾을 수 없습니다.");
+        else toast.error(msg || "예약 수정에 실패했습니다.");
+      } finally {
+        setEditLoadingId(null);
+      }
+    },
+    [editing, loadMyReservations]
+  );
+
+  const totalPages = Math.max(resPage?.totalPages ?? 1, 1);
+
   return (
     <Layout>
       <div className="container mypage">
-        <ProfileBanner user={user ?? { name: "게스트", email: "" }} />
-
-        <StatsCards stats={stats} />
+        <ProfileBanner user={user ?? fallbackUser} />
 
         <MyPageTabs activeTab={activeTab} onChangeTab={setActiveTab} />
 
@@ -205,34 +212,36 @@ const MyPage = () => {
               onEdit={handleOpenEdit}
               editLoadingId={editLoadingId}
             />
+
             <EditModal
               open={editOpen}
               initial={editing}
-              maxPeople={6} // 식당 maxPeoplePerReservation을 예약 데이터에 붙여서 넘기면 더 정확
+              maxPeople={6}
               loading={!!editLoadingId}
               onClose={handleCloseEdit}
               onSubmit={handleSubmitEdit}
             />
 
-            {/* 간단 페이지네이션 */}
             {resPage && (
               <nav className="pager-minimal" aria-label="예약 페이지네이션">
                 <button
                   className="pager-btn"
-                  disabled={resPage.first}
+                  disabled={resPage.first || page <= 0}
                   onClick={() => setPage((p) => Math.max(0, p - 1))}
                 >
                   이전
                 </button>
 
                 <span className="pager-text">
-                  {resPage.number + 1} / {Math.max(resPage.totalPages, 1)}
+                  {page + 1} / {totalPages}
                 </span>
 
                 <button
                   className="pager-btn"
-                  disabled={resPage.last}
-                  onClick={() => setPage((p) => p + 1)}
+                  disabled={resPage.last || page + 1 >= totalPages}
+                  onClick={() =>
+                    setPage((p) => Math.min(totalPages - 1, p + 1))
+                  }
                 >
                   다음
                 </button>
