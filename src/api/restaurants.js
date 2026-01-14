@@ -35,3 +35,36 @@ export async function fetchRestaurantById(restaurantId) {
   const res = await http.get(`/api/restaurants/${restaurantId}`);
   return res.data;
 }
+
+/**
+ * 위치 기반 레스토랑 검색
+ * GET /api/restaurants/nearby
+ */
+export async function fetchNearbyRestaurants({
+  lat,
+  lng,
+  radiusKm,
+  keyword,
+  category,
+  page = 0,
+  size = 10,
+}) {
+  if (lat == null || lng == null) throw new Error("lat/lng is required");
+  if (radiusKm == null) throw new Error("radiusKm is required");
+
+  const params = {
+    lat,
+    lng,
+    radius: radiusKm, // 서버 스펙: km
+    page,
+    size,
+  };
+
+  const kw = typeof keyword === "string" ? keyword.trim() : "";
+  if (kw) params.keyword = kw;
+
+  if (category && category !== "ALL") params.category = category;
+
+  const res = await http.get("/api/restaurants/nearby", { params });
+  return res.data;
+}

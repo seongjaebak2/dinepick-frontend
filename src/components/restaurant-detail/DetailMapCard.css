@@ -1,42 +1,106 @@
-.detail-map {
-  height: 180px;
-  border-radius: 14px;
-  border: 1px solid #e5e7eb;
-  background: linear-gradient(135deg, #dbeafe, #d1fae5);
-  display: grid;
-  place-items: center;
+/* 카드 기본은 네 프로젝트 기존 스타일 그대로 둬도 됨 */
+
+.detail-map-hero {
   position: relative;
+  width: 100%;
+  height: 260px;
+  border-radius: 14px;
   overflow: hidden;
+  margin-top: 10px;
 }
 
-.detail-map-pin {
-  font-size: 30px;
+/* 지도 div: 영역 꽉 채우기 */
+.detail-map-hero-bg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  background: #f3f4f6;
+  z-index: 1; /* ✅ 지도 레이어 */
+}
+
+/* 오버레이는 항상 위 */
+.detail-map-hero-overlay {
+  position: absolute;
+  left: 16px;
+  right: 16px;
+  bottom: 16px;
+
+  background: rgba(255, 255, 255, 0.92);
+  border-radius: 12px;
+  padding: 14px 16px;
+
+  box-shadow: 0 8px 22px rgba(0, 0, 0, 0.12);
+  backdrop-filter: blur(6px);
+
+  z-index: 10; /* 무조건 지도 위 */
+  pointer-events: none; /* 오버레이가 지도 드래그를 방해하지 않음  */
 }
 
 .detail-map-text {
-  position: absolute;
-  bottom: 12px;
-  left: 12px;
-  right: 12px;
-  background: rgba(255, 255, 255, 0.85);
-  border: 1px solid rgba(17, 17, 17, 0.08);
-  border-radius: 12px;
-  padding: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
 }
 
 .detail-map-name {
-  font-weight: 950;
-  font-size: 13px;
-  margin-bottom: 2px;
+  font-weight: 700;
+  font-size: 14px;
 }
 
 .detail-map-address {
+  font-size: 13px;
   color: #6b7280;
-  font-size: 12px;
 }
 
+/* 힌트 영역 */
 .detail-map-hint {
   margin-top: 10px;
+  font-size: 13px;
   color: #6b7280;
-  font-size: 12px;
+}
+/* 카카오 CustomOverlay가 다른 레이어에 묻히는 문제 방지 */
+.my-loc-wrap {
+  position: relative;
+  z-index: 9999 !important;
+  pointer-events: none; /* 내 위치 도트는 클릭 불필요 */
+  transform: translateZ(0); /* 레이어 분리(브라우저 렌더링 안정화) */
+}
+
+/* 기존 my-loc 스타일은 그대로 써도 됨 */
+.my-loc {
+  position: relative;
+  width: 12px;
+  height: 12px;
+  border-radius: 999px;
+  background: #1a73e8;
+  box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.95);
+}
+
+.my-loc::after {
+  content: "";
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 12px;
+  height: 12px;
+  transform: translate(-50%, -50%);
+  border-radius: 999px;
+  background: rgba(26, 115, 232, 0.35);
+  animation: myloc-pulse 1.6s ease-out infinite;
+}
+
+@keyframes myloc-pulse {
+  0% {
+    transform: translate(-50%, -50%) scale(1);
+    opacity: 0.85;
+  }
+  70% {
+    transform: translate(-50%, -50%) scale(3.6);
+    opacity: 0;
+  }
+  100% {
+    transform: translate(-50%, -50%) scale(3.6);
+    opacity: 0;
+  }
 }

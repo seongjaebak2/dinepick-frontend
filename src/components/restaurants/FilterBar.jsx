@@ -52,13 +52,12 @@ const FilterBar = ({
         {/* 필터 */}
         <div className="filter-top">
           <div>
-            <div className="filter-title">Filters</div>
             <div className="filter-meta">
               <span>검색어:</span>
               <span className="filter-value">{keyword || "All"}</span>
             </div>
             <div className="filter-meta" style={{ marginTop: 4 }}>
-              <span>Category:</span>
+              <span>카테고리:</span>
               <span className="filter-value">
                 {valueToLabel(selectedCategory)}
               </span>
@@ -72,9 +71,8 @@ const FilterBar = ({
             onChange={(e) => onSortChange({ sort: e.target.value })}
             aria-label="Sort option"
           >
-            <option value="recommended">Recommended</option>
-            <option value="rating">Rating</option>
-            <option value="name">Name</option>
+            <option value="recommended">추천순</option>
+            <option value="distance">가까운순</option>
           </select>
         </div>
       </div>
