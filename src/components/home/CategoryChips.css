@@ -1,32 +1,67 @@
+/* =========================
+   Category Chips (Home)
+   ========================= */
+
 .category-chips {
-  padding: 12px 0 6px;
-}
+  margin-top: 18px;
 
-.chips-container {
   display: flex;
-  gap: 10px;
   flex-wrap: wrap;
-  align-items: center;
+  gap: 10px;
+
+  justify-content: center; /* ✅ 가로 가운데 */
 }
 
+/* 기본 칩 */
 .chip {
-  border: 1px solid #eee;
-  background: #fff;
-  padding: 8px 12px;
+  appearance: none;
+  border: 1px solid var(--border);
+  background: #ffffff;
+  color: #111827;
+
+  padding: 8px 14px;
   border-radius: 999px;
-  font-size: 12px;
+
+  font-size: 13px;
+  font-weight: 600;
+
   cursor: pointer;
-  transition: transform 0.12s ease, border-color 0.12s ease,
-    background 0.12s ease;
+  line-height: 1;
+
+  transition: background-color 0.15s ease, color 0.15s ease,
+    border-color 0.15s ease, transform 0.12s ease;
 }
 
+/* hover */
 .chip:hover {
-  transform: translateY(-1px);
-  border-color: #cfcfcf;
+  background: #f3f4f6;
 }
 
+/*  선택(active) 상태: 어두운 배경 + 흰 글자 */
 .chip.active {
-  background: #111;
-  color: #fff;
-  border-color: #111;
+  background: #111827;
+  color: #ffffff;
+  border-color: #111827;
+  font-weight: 700;
+}
+
+/* active + hover */
+.chip.active:hover {
+  background: #0f172a;
+}
+
+/* 포커스 접근성 */
+.chip:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.35);
+}
+
+/* =========================
+   Mobile tweak
+   ========================= */
+@media (max-width: 480px) {
+  .chip {
+    padding: 7px 12px;
+    font-size: 12px;
+  }
 }

@@ -1,0 +1,176 @@
+/* =========================
+   NearMeMap Section Layout
+   ========================= */
+
+/* 타이틀 줄 */
+.nearby-header {
+  text-align: center;
+}
+
+.nearby-header {
+  display: flex;
+  flex-direction: column;
+  align-items: center; /* ✅ 핵심 */
+  gap: 6px;
+}
+.nearby-title {
+  font-size: 18px;
+  font-weight: 800;
+  margin: 0;
+  letter-spacing: -0.2px;
+}
+
+.nearby-sub {
+  font-size: 12px;
+  opacity: 0.75;
+}
+
+/* =========================
+   Search (Hero-search vibe + same padding rhythm)
+   - 화면을 꽉 채우지 않도록 wrapper 사용
+   ========================= */
+
+.nearby-search-wrap {
+  /* Hero container와 비슷한 좌우 여백 */
+  padding: 0 16px;
+  margin: 0 auto 12px;
+
+  /* 프로젝트 컨테이너 폭과 맞추기 (필요시 조절) */
+  max-width: 1200px;
+
+  /* Hero처럼 왼쪽 정렬 (원하면 center로 변경) */
+  display: flex;
+  justify-content: flex-start;
+}
+
+/* 검색창 자체: wrap 기준으로 max-width 제한 */
+.nearby-search {
+  width: 100%;
+  max-width: 720px; /* ⭐ 체감상 Hero 검색창 폭 */
+  margin: 0 auto;
+
+  display: flex;
+  align-items: center;
+  gap: 10px;
+
+  padding: 10px 10px 10px 14px;
+  border-radius: 999px;
+  border: 1px solid var(--border);
+  background: var(--surface);
+}
+
+/* 포커스 강조는 Hero와 동일 톤 */
+.nearby-search:focus-within {
+  border-color: rgba(59, 130, 246, 0.45);
+  box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.12);
+}
+
+.nearby-search input {
+  flex: 1;
+  height: 42px;
+
+  border: 0;
+  outline: 0;
+  background: transparent;
+
+  font-size: 14px;
+  color: #111827;
+}
+
+.nearby-search input::placeholder {
+  color: #9ca3af;
+}
+
+.nearby-search button {
+  height: 42px;
+  padding: 0 18px;
+
+  border: 0;
+  border-radius: 999px;
+  background: var(--primary);
+  color: #111827;
+
+  cursor: pointer;
+  font-weight: 800;
+
+  transition: transform 0.15s ease, filter 0.15s ease, opacity 0.15s ease;
+}
+
+.nearby-search button:hover {
+  transform: translateY(-1px);
+  filter: brightness(0.98);
+}
+
+.nearby-search button:active {
+  transform: translateY(0);
+}
+
+.nearby-search button:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+  transform: none;
+  filter: none;
+}
+
+/* =========================
+   Map container wrapper
+   - 너 JSX에서 inline 스타일로 border/round 주고 있지만
+     같은 톤으로 쓰려면 클래스로도 제공
+   ========================= */
+
+.nearby-map {
+  width: 100%;
+  border-radius: 14px;
+  overflow: hidden;
+  border: 1px solid rgba(0, 0, 0, 0.06);
+}
+
+/* =========================
+   Message boxes (error / info)
+   ========================= */
+
+.nearby-message {
+  margin-top: 10px;
+  padding: 12px;
+  border-radius: 12px;
+  font-size: 13px;
+  line-height: 1.45;
+  background: var(--surface);
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  color: rgba(17, 24, 39, 0.78);
+  box-shadow: 0 8px 22px rgba(0, 0, 0, 0.08);
+}
+
+.nearby-message.error {
+  border-color: rgba(239, 68, 68, 0.35);
+  color: rgba(127, 29, 29, 0.95);
+  background: rgba(239, 68, 68, 0.06);
+}
+
+.nearby-message.info {
+  border-color: rgba(0, 0, 0, 0.08);
+}
+
+/* =========================
+   Responsive
+   ========================= */
+
+@media (max-width: 900px) {
+  .nearby-search-wrap {
+    max-width: 100%;
+  }
+  .nearby-search {
+    max-width: 100%;
+  }
+}
+
+@media (max-width: 480px) {
+  .nearby-search {
+    padding: 10px;
+  }
+
+  .nearby-search input,
+  .nearby-search button {
+    height: 40px;
+  }
+}

@@ -1,0 +1,89 @@
+.erm-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.45);
+  display: grid;
+  place-items: center;
+  z-index: 9999;
+  padding: 16px;
+}
+
+.erm-modal {
+  width: min(440px, 100%);
+  background: #fff;
+  border-radius: 14px;
+  border: 1px solid #e8e8e8;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.18);
+  overflow: hidden;
+}
+
+.erm-header {
+  padding: 14px 16px 10px;
+}
+.erm-title {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 800;
+}
+.erm-sub {
+  margin-top: 4px;
+  font-size: 13px;
+  color: #666;
+}
+
+.erm-body {
+  padding: 8px 16px 14px;
+  display: grid;
+  gap: 10px;
+}
+.erm-field {
+  display: grid;
+  gap: 6px;
+}
+.erm-field span {
+  font-size: 13px;
+  color: #666;
+}
+
+.erm-field input,
+.erm-field select {
+  border: 1px solid #e3e3e3;
+  border-radius: 12px;
+  padding: 10px 12px;
+  font-size: 14px;
+}
+
+.erm-hint {
+  font-size: 12px;
+  color: #888;
+  margin-top: 4px;
+}
+
+.erm-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  padding: 12px 16px 14px;
+  border-top: 1px solid #f0f0f0;
+}
+
+.erm-btn {
+  border: none;
+  border-radius: 12px;
+  padding: 10px 14px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.erm-btn.ghost {
+  background: #f3f3f3;
+  color: #222;
+}
+.erm-btn.primary {
+  background: #111;
+  color: #fff;
+}
+.erm-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}

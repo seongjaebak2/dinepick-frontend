@@ -1,44 +1,103 @@
+import { useEffect, useState } from "react";
 import "./SectionGrid.css";
+import { fetchRestaurants } from "../../api/restaurants";
+import { useNavigate } from "react-router-dom";
 
-const SAMPLE_ITEMS = [
-  {
-    title: "레스토랑",
-    description: "부제목에 넣고 싶은 내용을 추가하는 본문 텍스트.",
-    imageUrl: "https://images.unsplash.com/photo-1540189549336-e6e99c3679fe",
-  },
-  {
-    title: "레스토랑",
-    description: "요점에 추가하고 싶은 내용을 적을 수 있는 본문 텍스트.",
-    imageUrl:
-      "data:image/jpeg;base64,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",
-  },
-  {
-    title: "레스토랑",
-    description: "더 공유하고 싶은 내용을 적을 수 있는 본문 텍스트.",
-    imageUrl: "https://images.unsplash.com/photo-1541971875076-8f970d573be6",
-  },
-];
+const FALLBACK_IMG = "/sushi.jpg"; // public/sushi.jpg
 
-/*
-  SectionGrid
-  - Reusable card grid section
-*/
-const SectionGrid = ({ title }) => {
+/**
+ * Home SectionGrid
+ * - 홈 추천 식당 전용
+ * - category로만 필터
+ * - 항상 첫 페이지 + size 고정
+ */
+const SectionGrid = ({ title, category = "ALL", size = 6 }) => {
+  const navigate = useNavigate();
+  const [items, setItems] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
+
+  useEffect(() => {
+    let alive = true;
+
+    (async () => {
+      try {
+        setLoading(true);
+        setError("");
+
+        const data = await fetchRestaurants({
+          category, // 홈 카테고리 필터
+          page: 0,
+          size,
+        });
+
+        if (!alive) return;
+
+        setItems(Array.isArray(data?.content) ? data.content : []);
+      } catch (e) {
+        console.error(e);
+        if (!alive) return;
+        setError("레스토랑을 불러오지 못했어요.");
+        setItems([]);
+      } finally {
+        if (!alive) return;
+        setLoading(false);
+      }
+    })();
+
+    return () => {
+      alive = false;
+    };
+  }, [category, size]);
+
   return (
     <section className="section-grid">
       <div className="container">
-        <h2 className="section-title">{title}</h2>
+        <div className="section-head">
+          <h2 className="section-title">{title}</h2>
+        </div>
+
+        {loading && <p className="section-grid-state">불러오는 중...</p>}
+        {!loading && error && <p className="section-grid-state">{error}</p>}
+        {!loading && !error && items.length === 0 && (
+          <p className="section-grid-state">표시할 레스토랑이 없습니다.</p>
+        )}
 
         <div className="grid">
-          {SAMPLE_ITEMS.map(({ title, description, imageUrl }, index) => (
-            <article key={index} className="card">
-              <img src={imageUrl} alt={title} />
-              <div className="card-body">
-                <h3 className="card-title">{title}</h3>
-                <p className="card-description">{description}</p>
-              </div>
-            </article>
-          ))}
+          {items.map((r) => {
+            // 썸네일 적용
+            const imgSrc = r.thumbnailUrl || FALLBACK_IMG;
+
+            return (
+              <article
+                key={r.id}
+                className="card"
+                role="button"
+                tabIndex={0}
+                onClick={() => navigate(`/restaurants/${r.id}`)}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter" || e.key === " ")
+                    navigate(`/restaurants/${r.id}`);
+                }}
+              >
+                <img
+                  src={imgSrc}
+                  alt={r.name}
+                  loading="lazy"
+                  onError={(e) => {
+                    e.currentTarget.src = FALLBACK_IMG;
+                  }}
+                />
+                <div className="card-body">
+                  <h3 className="card-title">{r.name}</h3>
+                  <p className="card-description">{r.description}</p>
+                  <p className="card-meta">
+                    {r.address} · 최대 {r.maxPeoplePerReservation}명
+                  </p>
+                </div>
+              </article>
+            );
+          })}
         </div>
       </div>
     </section>

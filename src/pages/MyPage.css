@@ -1,0 +1,41 @@
+.mypage {
+  padding: 18px 0 40px;
+}
+/* 컨테이너 */
+.pager-minimal {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+  margin: 12px 0 4px;
+}
+
+/* 버튼: 텍스트 버튼 느낌 */
+.pager-btn {
+  background: none;
+  border: none;
+  padding: 6px 4px;
+
+  font-size: 14px;
+  font-weight: 600;
+  color: #222;
+
+  cursor: pointer;
+  transition: opacity 0.15s ease;
+}
+
+.pager-btn:hover:not(:disabled) {
+  opacity: 0.6;
+}
+
+.pager-btn:disabled {
+  opacity: 0.25;
+  cursor: not-allowed;
+}
+
+/* 가운데 텍스트 */
+.pager-text {
+  font-size: 13px;
+  color: #777;
+  letter-spacing: 0.2px;
+}

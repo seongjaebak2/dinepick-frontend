@@ -7,10 +7,25 @@ import "./RestaurantCard.css";
   - Navigates to detail page on click
 */
 const RestaurantCard = ({ item }) => {
+  const sushi = "/sushi.jpg";
   const navigate = useNavigate();
-  const { id, name, region, category, rating, priceRange, imageUrl } = item;
+
+  // 백엔드에 없는 필드는 기본값으로 처리
+  const {
+    id,
+    name = "",
+    region = "",
+    category = "",
+    rating = null,
+    priceRange = "",
+    thumbnailUrl = "",
+  } = item || {};
+
+  // ✅ 썸네일 없으면 기본 이미지
+  const imageSrc = thumbnailUrl || sushi;
 
   const handleOpenDetail = () => {
+    if (!id) return;
     navigate(`/restaurants/${id}`);
   };
 
@@ -23,26 +38,46 @@ const RestaurantCard = ({ item }) => {
       onKeyDown={(e) => {
         if (e.key === "Enter") handleOpenDetail();
       }}
-      aria-label={`Open ${name} details`}
+      aria-label={`Open ${name || "restaurant"} details`}
     >
       <div className="restaurant-image">
-        <img src={imageUrl} alt={name} />
+        {/* ✅ thumbnailUrl 없으면 sushi로 fallback */}
+        {imageSrc ? (
+          <img
+            src={imageSrc}
+            alt={name}
+            loading="lazy"
+            onError={(e) => {
+              // 이미지 깨지면 fallback
+              e.currentTarget.src = sushi;
+            }}
+          />
+        ) : (
+          <div className="restaurant-image-placeholder" />
+        )}
       </div>
 
       <div className="restaurant-body">
         <div className="restaurant-name-row">
-          <h3 className="restaurant-name">{name}</h3>
+          <h3 className="restaurant-name">{name || " "}</h3>
 
           <div className="restaurant-rating-badge" aria-label="Rating badge">
             <span className="restaurant-rating-dot" />
-            {rating.toFixed(1)}
+            {/* 백엔드에 rating 없으면 빈칸 */}
+            {typeof rating === "number" ? rating.toFixed(1) : ""}
           </div>
         </div>
 
         <div className="restaurant-meta">
-          <span className="restaurant-pill">{region}</span>
-          <span className="restaurant-pill">{category}</span>
-          <span className="restaurant-pill">{priceRange}</span>
+          <span className="restaurant-pill">{region || " "}</span>
+
+          {category && (
+            <span className="restaurant-chip" aria-label="Category">
+              {category}
+            </span>
+          )}
+
+          <span className="restaurant-pill">{priceRange || " "}</span>
         </div>
 
         <div

@@ -1,16 +1,29 @@
+/* =========================
+   HERO
+   ========================= */
 .hero {
-  padding: 26px 0 16px;
+  padding: 32px 0 18px;
 }
 
+/* 2컬럼 레이아웃 (텍스트 / 이미지) */
+.hero .container {
+  display: grid;
+  grid-template-columns: 1.05fr 0.95fr;
+  gap: 28px;
+  align-items: center;
+}
+
+/* =========================
+   Text Area
+   ========================= */
 .hero-content {
   display: grid;
-  gap: 10px;
-  margin-bottom: 16px;
+  gap: 12px;
 }
 
 .hero-title {
-  font-size: clamp(28px, 3.2vw, 44px);
   margin: 0;
+  font-size: clamp(28px, 3.2vw, 44px);
   letter-spacing: -0.9px;
   line-height: 1.08;
 }
@@ -19,63 +32,137 @@
   margin: 0;
   color: var(--muted);
   font-size: 14px;
+  line-height: 1.5;
 }
 
+/* =========================
+   Search
+   ========================= */
 .hero-search {
-  margin-top: 6px;
+  margin-top: 8px;
+
   display: flex;
-  gap: 10px;
   align-items: center;
-  padding: 10px;
-  background: var(--surface);
-  border: 1px solid var(--border);
+  gap: 10px;
+
+  padding: 10px 10px 10px 14px;
   border-radius: 999px;
+  border: 1px solid var(--border);
+  background: var(--surface);
   box-shadow: var(--shadow-sm);
+
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+/* wrapper에 포커스가 들어오면 강조 */
+.hero-search:focus-within {
+  border-color: rgba(59, 130, 246, 0.45);
+  box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.12);
 }
 
 .hero-search input {
   flex: 1;
-  height: 40px;
-  padding: 0 12px;
-  border: none;
-  outline: none;
-  font-size: 14px;
+  height: 42px;
+
+  border: 0;
+  outline: 0;
   background: transparent;
+
+  font-size: 14px;
+  color: #111827;
+}
+
+.hero-search input::placeholder {
+  color: #9ca3af;
 }
 
 .hero-search button {
-  height: 40px;
-  padding: 0 16px;
-  border: none;
-  background: var(--primary);
-  color: #fff;
+  height: 42px;
+  padding: 0 18px;
+
+  border: 0;
   border-radius: 999px;
+  background: var(--primary);
+  color: #111827;
+
   cursor: pointer;
-  font-weight: 900;
-  transition: transform 0.12s ease, opacity 0.12s ease;
+  font-weight: 800;
+
+  transition: transform 0.15s ease, filter 0.15s ease, opacity 0.15s ease;
 }
 
 .hero-search button:hover {
   transform: translateY(-1px);
+  filter: brightness(0.98);
+}
+
+.hero-search button:active {
+  transform: translateY(0);
 }
 
 .hero-search button:disabled {
   opacity: 0.45;
   cursor: not-allowed;
   transform: none;
+  filter: none;
 }
 
+/* =========================
+   Image (안 깨지게: aspect-ratio)
+   ========================= */
 .hero-image {
+  width: 100%;
   border-radius: var(--radius);
   overflow: hidden;
   border: 1px solid var(--border);
   background: var(--surface);
   box-shadow: var(--shadow);
+
+  /* ⭐ 핵심: 비율 고정으로 절대 안 부서짐 */
+  aspect-ratio: 16 / 10;
+
+  /* 너무 커지는 것 방지 */
+  max-height: 340px;
 }
 
 .hero-image img {
   width: 100%;
-  height: 360px;
-  object-fit: cover;
+  height: 100%;
   display: block;
+  object-fit: cover;
+}
+
+/* =========================
+   Responsive
+   ========================= */
+@media (max-width: 900px) {
+  .hero .container {
+    grid-template-columns: 1fr;
+    gap: 16px;
+  }
+
+  .hero-image {
+    aspect-ratio: 16 / 9;
+    max-height: 300px;
+  }
+}
+
+@media (max-width: 480px) {
+  .hero {
+    padding: 24px 0 14px;
+  }
+
+  .hero-search {
+    padding: 10px;
+  }
+
+  .hero-search input,
+  .hero-search button {
+    height: 40px;
+  }
+
+  .hero-image {
+    aspect-ratio: 4 / 3;
+    max-height: 220px;
+  }
 }

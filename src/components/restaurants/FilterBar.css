@@ -6,7 +6,7 @@
   display: grid;
   gap: 14px;
   background: var(--surface);
-  box-shadow: var(--shadow-sm);
+  overflow: visible;
 }
 
 .filter-top {
@@ -53,11 +53,15 @@
   transform: translateY(-1px);
   border-color: rgba(17, 17, 17, 0.18);
 }
-
+.filter-chip.active:hover {
+  filter: brightness(0.95);
+  transform: translateY(-1px);
+}
 .filter-chip.active {
-  background: var(--primary);
-  color: #fff;
-  border-color: var(--primary);
+  background: #111827;
+  color: #ffffff;
+  border-color: #111827;
+  font-weight: 800;
 }
 
 .filter-meta {
@@ -71,4 +75,103 @@
 .filter-value {
   font-weight: 900;
   color: var(--text);
+}
+
+.filter-header {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 14px;
+  align-items: center;
+}
+
+/* 오른쪽: Filters 텍스트 + select 정렬은 옆으로 */
+.filter-top {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  justify-content: flex-end;
+  min-width: 320px;
+}
+
+/* 왼쪽: 검색창 */
+.filter-search {
+  margin-top: 12px;
+
+  display: flex;
+  align-items: center;
+  gap: 10px;
+
+  padding: 10px 10px 10px 14px;
+  border-radius: 999px;
+  border: 1px solid var(--border);
+  background: var(--surface);
+
+  /* 기본 상태에서도 그림자 */
+  box-shadow: 0 4px 14px rgba(17, 24, 39, 0.08);
+
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+/* wrapper 포커스 */
+.filter-search:focus-within {
+  border-color: rgba(59, 130, 246, 0.45);
+  box-shadow: 0 2px 10px rgba(17, 24, 39, 0.06);
+}
+
+.filter-search input {
+  flex: 1;
+  height: 42px;
+
+  border: 0;
+  outline: 0;
+  background: transparent;
+
+  font-size: 14px;
+  color: #111827;
+}
+
+.filter-search input::placeholder {
+  color: #9ca3af;
+}
+
+.filter-search button {
+  height: 42px;
+  padding: 0 18px;
+
+  border: 0;
+  border-radius: 999px;
+  background: var(--primary);
+  color: #111827;
+
+  cursor: pointer;
+  font-weight: 800;
+
+  transition: transform 0.15s ease, filter 0.15s ease, opacity 0.15s ease;
+}
+
+.filter-search button:hover {
+  transform: translateY(-1px);
+  filter: brightness(0.98);
+}
+
+.filter-search button:active {
+  transform: translateY(0);
+}
+
+/* =========================
+   반응형
+   ========================= */
+@media (max-width: 768px) {
+  .filter-header {
+    grid-template-columns: 1fr;
+  }
+
+  .filter-top {
+    justify-content: space-between;
+    min-width: 0;
+  }
+
+  .filter-search {
+    max-width: 100%;
+  }
 }

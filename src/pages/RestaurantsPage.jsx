@@ -1,95 +1,176 @@
-import { useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import { useSearchParams } from "react-router-dom";
 import Layout from "../components/layout/Layout";
 import FilterBar from "../components/restaurants/FilterBar";
 import RestaurantGrid from "../components/restaurants/RestaurantGrid";
 import Pagination from "../components/restaurants/Pagination";
-import { RESTAURANT_ITEMS } from "../data/restaurants";
+import { fetchRestaurants, fetchNearbyRestaurants } from "../api/restaurants";
+import { useGeolocation } from "../hooks/useGeolocation";
 
 const PAGE_SIZE = 6;
+const NEARBY_RADIUS_KM = 10; // 필요하면 조절
 
-/*
-  RestaurantsPage
-  - Displays search results by region
-  - Includes filter bar, grid, and pagination
-*/
 const RestaurantsPage = () => {
-  const [searchParams] = useSearchParams();
+  const [searchParams, setSearchParams] = useSearchParams();
 
-  const regionQuery = searchParams.get("region") ?? "";
-  const [selectedCategory, setSelectedCategory] = useState("All");
-  const [sortOption, setSortOption] = useState("recommended");
-  const [page, setPage] = useState(1);
+  const keyword = searchParams.get("keyword") ?? "";
+  const category = searchParams.get("category") ?? "ALL";
 
-  const filteredItems = useMemo(() => {
-    const byRegion = RESTAURANT_ITEMS.filter(({ region }) =>
-      regionQuery.trim().length === 0
-        ? true
-        : region.includes(regionQuery.trim())
-    );
+  const [page, setPage] = useState(0);
+  const sortFromUrl = searchParams.get("sort") ?? "recommended";
+  const [sortOption, setSortOption] = useState(sortFromUrl);
 
-    const byCategory =
-      selectedCategory === "All"
-        ? byRegion
-        : byRegion.filter(({ category }) => category === selectedCategory);
+  const [data, setData] = useState(null);
+  const [loading, setLoading] = useState(false);
+  const [hint, setHint] = useState(""); // ✅ 거리순일 때 위치 관련 안내용
 
-    const sorted = [...byCategory].sort((a, b) => {
-      if (sortOption === "rating") return b.rating - a.rating;
-      if (sortOption === "name") return a.name.localeCompare(b.name);
-      return b.rating - a.rating;
-    });
+  // ✅ 가까운순이면 위치 필요
+  const { loaded: geoLoaded, coords, error: geoError } = useGeolocation();
 
-    return sorted;
-  }, [regionQuery, selectedCategory, sortOption]);
+  const isDistance = sortOption === "distance";
 
-  const totalPages = useMemo(() => {
-    return Math.max(1, Math.ceil(filteredItems.length / PAGE_SIZE));
-  }, [filteredItems.length]);
+  // keyword/category/sortOption 바뀌면 첫 페이지로
+  useEffect(() => {
+    setPage(0);
+  }, [keyword, category, sortOption]);
 
-  const pagedItems = useMemo(() => {
-    const safePage = Math.min(page, totalPages);
-    const start = (safePage - 1) * PAGE_SIZE;
-    return filteredItems.slice(start, start + PAGE_SIZE);
-  }, [filteredItems, page, totalPages]);
+  useEffect(() => {
+    setSortOption(searchParams.get("sort") ?? "recommended");
+  }, [searchParams]);
 
-  const handleCategoryChange = ({ category }) => {
-    setSelectedCategory(category);
-    setPage(1);
+  useEffect(() => {
+    let cancelled = false;
+
+    const load = async () => {
+      setLoading(true);
+      setHint("");
+
+      try {
+        // ✅ 가까운순: nearby 호출
+        if (isDistance) {
+          // 위치 로딩 중이면 대기
+          if (!geoLoaded) {
+            setHint("내 위치를 확인하는 중...");
+            setData(null);
+            return;
+          }
+
+          // loaded인데 coords 없으면(권한 거부/실패/타임아웃)
+          if (!coords) {
+            const msg =
+              geoError?.code === 1
+                ? "가까운순 정렬을 위해 위치 권한이 필요합니다."
+                : "내 위치를 가져오지 못했습니다. 위치 설정을 확인해주세요.";
+            setHint(msg);
+
+            // UI 깨지지 않게 빈 페이지 형태로 세팅
+            setData({
+              content: [],
+              totalPages: 1,
+              totalElements: 0,
+              number: 0,
+            });
+            return;
+          }
+
+          const res = await fetchNearbyRestaurants({
+            lat: coords.lat,
+            lng: coords.lng,
+            radiusKm: NEARBY_RADIUS_KM,
+            keyword,
+            category,
+            page,
+            size: PAGE_SIZE,
+          });
+
+          if (cancelled) return;
+          setData(res);
+          return;
+        }
+
+        // ✅ 추천순(기본): 기존 API 그대로
+        const res = await fetchRestaurants({
+          keyword,
+          category,
+          page,
+          size: PAGE_SIZE,
+        });
+
+        if (cancelled) return;
+        setData(res);
+      } finally {
+        if (!cancelled) setLoading(false);
+      }
+    };
+
+    load();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [keyword, category, page, isDistance, geoLoaded, coords, geoError]);
+
+  // 검색어 submit: 빈값이면 전체보기
+  const handleKeywordSubmit = (nextKeyword) => {
+    const params = new URLSearchParams(searchParams);
+
+    if (!nextKeyword) params.delete("keyword");
+    else params.set("keyword", nextKeyword);
+
+    setSearchParams(params);
   };
 
-  const handleSortChange = ({ sort }) => {
-    setSortOption(sort);
-    setPage(1);
-  };
-
-  const handlePageChange = ({ nextPage }) => {
-    setPage(nextPage);
-  };
+  const items = data?.content ?? [];
+  const totalPages = data?.totalPages ?? 1;
+  const totalElements = data?.totalElements ?? 0;
 
   return (
     <Layout>
       <div className="container" style={{ padding: "22px 0" }}>
         <h1 style={{ margin: "0 0 6px", letterSpacing: "-0.3px" }}>
-          {regionQuery ? `"${regionQuery}" 검색 결과` : "Restaurants"}
+          {keyword ? `"${keyword}" 검색 결과` : "Restaurants"}
         </h1>
         <p style={{ margin: 0, color: "#6b7280", fontSize: 14 }}>
-          {filteredItems.length} results found
+          {totalElements} results found
         </p>
 
         <FilterBar
-          region={regionQuery}
-          selectedCategory={selectedCategory}
+          keyword={keyword}
+          selectedCategory={category}
           sortOption={sortOption}
-          onCategoryChange={handleCategoryChange}
-          onSortChange={handleSortChange}
+          onCategoryChange={({ category: nextCategory }) => {
+            const params = new URLSearchParams(searchParams);
+            if (nextCategory === "ALL") params.delete("category");
+            else params.set("category", nextCategory);
+            setSearchParams(params);
+          }}
+          onSortChange={({ sort }) => {
+            const params = new URLSearchParams(searchParams);
+            params.set("page", "0");
+            if (sort === "recommended") params.delete("sort");
+            else params.set("sort", sort);
+            setSearchParams(params);
+          }}
+          onKeywordSubmit={handleKeywordSubmit}
         />
 
-        <RestaurantGrid items={pagedItems} />
+        {/* 거리순 안내 문구 */}
+        {hint && (
+          <div style={{ marginTop: 10, color: "#6b7280", fontSize: 13 }}>
+            {hint}
+          </div>
+        )}
+
+        {loading ? (
+          <div style={{ padding: 20 }}>불러오는 중...</div>
+        ) : (
+          <RestaurantGrid items={items} />
+        )}
 
         <Pagination
-          currentPage={page}
+          currentPage={page + 1}
           totalPages={totalPages}
-          onChange={handlePageChange}
+          onChange={({ nextPage }) => setPage(nextPage - 1)}
         />
       </div>
     </Layout>
