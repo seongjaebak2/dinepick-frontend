@@ -7,7 +7,7 @@ import Pagination from "../components/restaurants/Pagination";
 import { fetchRestaurants, fetchNearbyRestaurants } from "../api/restaurants";
 import { useGeolocation } from "../hooks/useGeolocation";
 
-const PAGE_SIZE = 6;
+const PAGE_SIZE = 9;
 const NEARBY_RADIUS_KM = 10; // 필요하면 조절
 
 const RestaurantsPage = () => {
@@ -22,19 +22,22 @@ const RestaurantsPage = () => {
 
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(false);
-  const [hint, setHint] = useState(""); // ✅ 거리순일 때 위치 관련 안내용
+  const [hint, setHint] = useState("");
+
+  // ✅ Hybrid Pagination States
+  const [kakaoPool, setKakaoPool] = useState([]); // 전체 카카오 검색 결과 저장
+  const [dbTotal, setDbTotal] = useState(0);    // 백엔드 전체 아이템 수
 
   // ✅ 가까운순이면 위치 필요
   const { loaded: geoLoaded, coords, error: geoError } = useGeolocation();
 
-  // ✅ URL 파라미터에서 커스텀 좌표(지역 검색 결과) 확인
   const customLat = searchParams.get("lat");
   const customLng = searchParams.get("lng");
   const locName = searchParams.get("locName");
 
   const isDistance = sortOption === "distance";
 
-  // keyword/category/sortOption 바뀌면 첫 페이지로
+  // 검색 조건 바뀌면 페이지 초기화 (키워드/카테고리/정렬 등)
   useEffect(() => {
     setPage(0);
   }, [keyword, category, sortOption, customLat, customLng]);
@@ -51,77 +54,108 @@ const RestaurantsPage = () => {
       setHint("");
 
       try {
-        // ✅ 가까운순: nearby 호출
+        let currentKakaoPool = kakaoPool;
+
+        // 1. New Search or Page 0: Kakao Pool 무조건 새로고침
+        if (page === 0) {
+          try {
+            const { searchKakaoPlaces } = await import("../utils/kakaoPlaces");
+            const categoryMap = {
+              KOREAN: "한식",
+              CHINESE: "중식",
+              JAPANESE: "일식",
+              WESTERN: "양식",
+              CAFE: "카페",
+              ETC: "주점" // 너무 많으면 AND 검색되어 0건 뜰 수 있으므로 단순화
+            };
+
+            let searchKw = keyword;
+            if (category !== "ALL") {
+              const label = categoryMap[category] || category;
+              // 키워드에 해당 단어가 없을 때만 조합
+              if (keyword) {
+                if (!keyword.includes(label)) {
+                  searchKw = `${keyword} ${label}`;
+                }
+              } else {
+                searchKw = label;
+              }
+            } else if (!keyword) {
+              searchKw = "맛집";
+            }
+
+            if (isDistance) {
+              const DEFAULT_POS = { lat: 35.1577583, lng: 129.0593167 };
+              const currentPos = (customLat && customLng) ? { lat: Number(customLat), lng: Number(customLng) } : (coords || DEFAULT_POS);
+              currentKakaoPool = await searchKakaoPlaces(searchKw, { lat: currentPos.lat, lng: currentPos.lng });
+            } else {
+              currentKakaoPool = await searchKakaoPlaces(searchKw);
+            }
+
+            if (category !== "ALL") {
+              currentKakaoPool = currentKakaoPool.filter(item => item.category === category);
+            }
+
+            if (!cancelled) setKakaoPool(currentKakaoPool);
+          } catch (err) {
+            console.warn("Kakao fetch failed", err);
+            currentKakaoPool = []; // 실패 시 빈 배열로 진행
+            if (!cancelled) setKakaoPool([]);
+          }
+        }
+
+        // 2. DB Results Fetch (현재 페이지 분량)
+        let dbResults = { content: [], totalElements: 0 };
         if (isDistance) {
+          const DEFAULT_POS = { lat: 35.1577583, lng: 129.0593167 };
+          const currentPos = (customLat && customLng) ? { lat: Number(customLat), lng: Number(customLng) } : (coords || DEFAULT_POS);
 
-          // 1) URL에 지정된 좌표가 있으면 최우선 사용 (예: "부산" 검색 결과)
-          if (customLat && customLng) {
-            setHint(`'${locName || "지정된 위치"}' 기준 주변 맛집입니다.`);
-            const res = await fetchNearbyRestaurants({
-              lat: Number(customLat),
-              lng: Number(customLng),
-              radiusKm: NEARBY_RADIUS_KM,
-              keyword, // "부산" 검색 후 추가 키워드 없이 리스트만 볼 경우엔 빈값일 수 있음
-              category,
-              page,
-              size: PAGE_SIZE,
-            });
-            if (cancelled) return;
-            setData(res);
-            return;
-          }
+          if (!customLat && !coords) setHint("위치 권한이 없어 기본 위치(서면역) 기준으로 검색합니다.");
+          else if (customLat) setHint(`'${locName || "지정된 위치"}' 기준 주변 맛집입니다.`);
 
-          // 2) URL 좌표 없으면 -> 내 현재 위치(geo) 사용
-          // 위치 로딩 중이면 대기
-          if (!geoLoaded) {
-            setHint("내 위치를 확인하는 중...");
-            setData(null);
-            return;
-          }
-
-          // loaded인데 coords 없으면(권한 거부/실패/타임아웃)
-          if (!coords) {
-            const msg =
-              geoError?.code === 1
-                ? "가까운순 정렬을 위해 위치 권한이 필요합니다."
-                : "내 위치를 가져오지 못했습니다. 위치 설정을 확인해주세요.";
-            setHint(msg);
-
-            // UI 깨지지 않게 빈 페이지 형태로 세팅
-            setData({
-              content: [],
-              totalPages: 1,
-              totalElements: 0,
-              number: 0,
-            });
-            return;
-          }
-
-          const res = await fetchNearbyRestaurants({
-            lat: coords.lat,
-            lng: coords.lng,
+          dbResults = await fetchNearbyRestaurants({
+            lat: currentPos.lat,
+            lng: currentPos.lng,
             radiusKm: NEARBY_RADIUS_KM,
             keyword,
             category,
             page,
             size: PAGE_SIZE,
           });
-
-          if (cancelled) return;
-          setData(res);
-          return;
+        } else {
+          dbResults = await fetchRestaurants({
+            keyword,
+            category,
+            page,
+            size: PAGE_SIZE,
+          });
         }
 
-        // ✅ 추천순(기본): 기존 API 그대로
-        const res = await fetchRestaurants({
-          keyword,
-          category,
-          page,
-          size: PAGE_SIZE,
+        if (cancelled) return;
+        setDbTotal(dbResults.totalElements || 0);
+
+        // 3. Hybrid Merge (9개 채우기)
+        let mergedItems = [...(dbResults.content || [])];
+        const dbCountOnThisPage = mergedItems.length;
+
+        if (dbCountOnThisPage < PAGE_SIZE && currentKakaoPool.length > 0) {
+          // 카카오 아이템 중 어디서부터 가져올지 계산 (Skip)
+          // 전체 아이템 관점에서 현재 페이지 시작 인덱스 (page * 9)
+          // 거기서 dbTotalCount를 뺀 만큼이 카카오의 시작점
+          const kakaoStartIdx = Math.max(0, (page * PAGE_SIZE) - (dbResults.totalElements || 0));
+          const kakaoEndIdx = kakaoStartIdx + (PAGE_SIZE - dbCountOnThisPage);
+
+          const kakaoSlice = currentKakaoPool.slice(kakaoStartIdx, kakaoEndIdx);
+          mergedItems = [...mergedItems, ...kakaoSlice];
+        }
+
+        setData({
+          ...dbResults,
+          content: mergedItems,
+          totalElements: (dbResults.totalElements || 0) + currentKakaoPool.length,
+          totalPages: Math.ceil(((dbResults.totalElements || 0) + currentKakaoPool.length) / PAGE_SIZE)
         });
 
-        if (cancelled) return;
-        setData(res);
       } finally {
         if (!cancelled) setLoading(false);
       }

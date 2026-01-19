@@ -29,7 +29,11 @@ export function useGeolocation(options = {}) {
         });
       },
       (err) => {
-        console.log("GEO ERROR", err.code, err.message);
+        if (err.code === 1) {
+          console.log("[useGeolocation] Location access denied by user. Falling back to default.");
+        } else {
+          console.warn("[useGeolocation] Error:", err.code, err.message);
+        }
         setState({
           loaded: true,
           coords: null,

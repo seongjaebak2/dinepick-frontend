@@ -9,9 +9,9 @@ const RestaurantGrid = ({ items }) => {
   if (items.length === 0) {
     return (
       <div className="restaurant-empty">
-        <div className="restaurant-empty-title">No results</div>
+        <div className="restaurant-empty-title">검색 결과가 없습니다</div>
         <div className="restaurant-empty-desc">
-          Try a different region or adjust filters.
+          다른 키워드로 검색하거나 필터를 조절해 보세요.
         </div>
       </div>
     );

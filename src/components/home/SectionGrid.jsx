@@ -1,18 +1,14 @@
 import { useEffect, useState } from "react";
 import "./SectionGrid.css";
 import { fetchRestaurants } from "../../api/restaurants";
-import { useNavigate } from "react-router-dom";
-
-const FALLBACK_IMG = "/sushi.jpg"; // public/sushi.jpg
+import RestaurantCard from "../restaurants/RestaurantCard";
 
 /**
  * Home SectionGrid
- * - 홈 추천 식당 전용
- * - category로만 필터
- * - 항상 첫 페이지 + size 고정
+ * - 홈 추천 식당 전용 (하이브리드 검색 적용)
+ * - category로 필터 + 카카오 검색 결과 보충
  */
 const SectionGrid = ({ title, category = "ALL", size = 6 }) => {
-  const navigate = useNavigate();
   const [items, setItems] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
@@ -25,15 +21,47 @@ const SectionGrid = ({ title, category = "ALL", size = 6 }) => {
         setLoading(true);
         setError("");
 
-        const data = await fetchRestaurants({
-          category, // 홈 카테고리 필터
+        // 1. DB 검색
+        const dbData = await fetchRestaurants({
+          category,
           page: 0,
           size,
         });
 
         if (!alive) return;
 
-        setItems(Array.isArray(data?.content) ? data.content : []);
+        const dbItems = Array.isArray(dbData?.content) ? dbData.content : [];
+
+        // 2. Kakao 검색 (Hybrid)
+        let kakaoItems = [];
+        try {
+          // 카테고리 매핑 (KOREAN -> 한식 등)
+          const categoryMap = {
+            KOREAN: "한식",
+            CHINESE: "중식",
+            JAPANESE: "일식",
+            WESTERN: "양식",
+            CAFE: "카페",
+            ETC: "주점",
+            ALL: "맛집"
+          };
+          const searchKw = categoryMap[category] || "맛집";
+          const { searchKakaoPlaces } = await import("../../utils/kakaoPlaces");
+          kakaoItems = await searchKakaoPlaces(searchKw);
+
+          // 정확한 분류를 위해 한 번 더 필터링 (ALL이 아닐 때)
+          if (category !== "ALL") {
+            kakaoItems = kakaoItems.filter(item => item.category === category);
+          }
+        } catch (err) {
+          console.warn("Kakao search failed in SectionGrid", err);
+        }
+
+        if (!alive) return;
+
+        // DB 결과 뒤에 카카오 결과 붙이기 (최대 size 개수만큼만 표시할 수도 있지만 여기선 전체 병합 후 유연하게 처리)
+        // 일단 홈화면이니 적절히 6~12개 정도 나오게 조절
+        setItems([...dbItems, ...kakaoItems].slice(0, 12));
       } catch (e) {
         console.error(e);
         if (!alive) return;
@@ -64,40 +92,9 @@ const SectionGrid = ({ title, category = "ALL", size = 6 }) => {
         )}
 
         <div className="grid">
-          {items.map((r) => {
-            // 썸네일 적용
-            const imgSrc = r.thumbnailUrl || FALLBACK_IMG;
-
-            return (
-              <article
-                key={r.id}
-                className="card"
-                role="button"
-                tabIndex={0}
-                onClick={() => navigate(`/restaurants/${r.id}`)}
-                onKeyDown={(e) => {
-                  if (e.key === "Enter" || e.key === " ")
-                    navigate(`/restaurants/${r.id}`);
-                }}
-              >
-                <img
-                  src={imgSrc}
-                  alt={r.name}
-                  loading="lazy"
-                  onError={(e) => {
-                    e.currentTarget.src = FALLBACK_IMG;
-                  }}
-                />
-                <div className="card-body">
-                  <h3 className="card-title">{r.name}</h3>
-                  <p className="card-description">{r.description}</p>
-                  <p className="card-meta">
-                    {r.address} · 최대 {r.maxPeoplePerReservation}명
-                  </p>
-                </div>
-              </article>
-            );
-          })}
+          {items.map((item) => (
+            <RestaurantCard key={item.id} item={item} />
+          ))}
         </div>
       </div>
     </section>

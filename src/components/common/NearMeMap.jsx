@@ -6,7 +6,7 @@ import { fetchNearbyRestaurants } from "../../api/restaurants";
 import "./nearMeMap.css";
 
 // fallback (원하면 변경)
-const DEFAULT_POS = { lat: 35.1502336, lng: 129.0600448 };
+const DEFAULT_POS = { lat: 35.1577583, lng: 129.0593167 }; // 서면역
 
 function clampRadiusKm(v) {
   const n = Number(v);
@@ -70,7 +70,9 @@ export default function NearMeMap({
   const [apiError, setApiError] = useState(null);
 
   const basePos = useMemo(() => {
+    // 1순위: GPS 위치 (허용 시)
     if (coords) return coords;
+    // 2순위: GPS 실패/거부 시 기본 위치 (서면역)
     if (loaded && !coords && useFallbackWhenDenied) return DEFAULT_POS;
     return null;
   }, [coords, loaded, useFallbackWhenDenied]);
@@ -336,20 +338,36 @@ export default function NearMeMap({
 
     const detailBtn = document.createElement("button");
     detailBtn.type = "button";
-    detailBtn.textContent = "상세보기";
+
+    // 외부 데이터면 문구 및 동작 변경
+    const isExternal = !!restaurant.isExternal;
+    detailBtn.textContent = isExternal ? "카카오맵 결과" : "상세보기";
+
+    // 외부 데이터면 노란색 테마
+    if (isExternal) {
+      detailBtn.style.background = "#fae100";
+      detailBtn.style.color = "#3b1e1e";
+      detailBtn.style.border = "1px solid #fae100";
+    } else {
+      detailBtn.style.background = "#111";
+      detailBtn.style.color = "white";
+      detailBtn.style.border = "1px solid #111";
+    }
+
     detailBtn.style.flex = "1";
     detailBtn.style.padding = "10px 12px";
     detailBtn.style.borderRadius = "12px";
-    detailBtn.style.border = "1px solid #111";
-    detailBtn.style.background = "#111";
-    detailBtn.style.color = "white";
     detailBtn.style.cursor = "pointer";
     detailBtn.style.fontWeight = "800";
     detailBtn.style.letterSpacing = "-0.1px";
     detailBtn.onclick = (e) => {
       e.stopPropagation();
       clearOverlay();
-      navigate(`/restaurants/${restaurant.id}`);
+      if (isExternal && restaurant.placeUrl) {
+        window.open(restaurant.placeUrl, "_blank");
+      } else {
+        navigate(`/restaurants/${restaurant.id}`);
+      }
     };
 
     const dismissBtn = document.createElement("button");
@@ -453,6 +471,7 @@ export default function NearMeMap({
         // 내 위치(펄스)
         setMyLocationPulse(basePos);
 
+        // 1. DB Search
         const pageResp = await fetchNearbyRestaurants({
           lat: basePos.lat,
           lng: basePos.lng,
@@ -463,17 +482,28 @@ export default function NearMeMap({
           size,
         });
 
-        const raw = pageResp?.content || [];
+        const rawDb = pageResp?.content || [];
 
-        // 주소 없는 건 제거
-        const candidates = raw.filter((r) => {
+        // 2. Kakao Search (Hybrid)
+        let rawKakao = [];
+        // 키워드가 없으면 "맛집" 으로 검색
+        // (단, category가 ALL이 아니면 카테고리명을 키워드로 쓸 수도 있음)
+        try {
+          const { searchKakaoPlaces } = await import("../../utils/kakaoPlaces");
+          const searchKw = keyword?.trim() || (category === "ALL" ? "맛집" : category);
+          rawKakao = await searchKakaoPlaces(searchKw, { lat: basePos.lat, lng: basePos.lng });
+        } catch (err) {
+          console.warn("Kakao search failed", err);
+        }
+
+        // DB Data: 주소 -> 좌표 변환 필요
+        const candidatesDb = rawDb.filter((r) => {
           const a = String(r.address || "").trim();
           return a.length > 0;
         });
 
-        // 주소 -> 좌표 (실패 제거)
-        const mapped = await mapWithConcurrency(
-          candidates,
+        const mappedDb = await mapWithConcurrency(
+          candidatesDb,
           async (r) => {
             const coord = await geocodeAddress(r.address);
             if (!coord) return null;
@@ -482,30 +512,67 @@ export default function NearMeMap({
           5
         );
 
-        const okItems = mapped.filter(Boolean);
+        // Kakao Data: 이미 좌표(x,y)가 있으므로 coord 포맷만 맞춤
+        const mappedKakao = rawKakao.map(k => ({
+          ...k,
+          coord: { lat: Number(k.y), lng: Number(k.x) }
+        }));
+
+        // Merge (DB 우선)
+        const okItems = [...mappedDb.filter(Boolean), ...mappedKakao];
 
         const bounds = new kakao.maps.LatLngBounds();
         bounds.extend(new kakao.maps.LatLng(basePos.lat, basePos.lng));
+
+        // ✅ 반경 원(Circle) 그리기
+        const circle = new kakao.maps.Circle({
+          center: new kakao.maps.LatLng(basePos.lat, basePos.lng),
+          radius: safeRadiusKm * 1000, // m 단위
+          strokeWeight: 1,
+          strokeColor: '#00a0e9',
+          strokeOpacity: 0.1,
+          strokeStyle: 'solid',
+          fillColor: '#00a0e9',
+          fillOpacity: 0.05
+        });
+        circle.setMap(map);
+        markersRef.current.push(circle);
 
         okItems.forEach((r) => {
           const pos = new kakao.maps.LatLng(r.coord.lat, r.coord.lng);
           bounds.extend(pos);
 
-          const marker = new kakao.maps.Marker({ position: pos });
+          // ✅ 마커 이미지 설정 (Kakao=노란별)
+          let markerImage = null;
+          if (r.isExternal) {
+            const imageSrc = "https://t1.daumcdn.net/localimg/localimages/07/mapapidoc/markerStar.png";
+            const imageSize = new kakao.maps.Size(24, 35);
+            markerImage = new kakao.maps.MarkerImage(imageSrc, imageSize);
+          }
+
+          const marker = new kakao.maps.Marker({
+            position: pos,
+            image: markerImage
+          });
           marker.setMap(map);
 
           kakao.maps.event.addListener(marker, "click", () => {
-            map.panTo(pos); // ✅ 마커 클릭 시 지도 중심 이동
+            map.panTo(pos);
             showRestaurantOverlay(r, pos);
           });
 
           markersRef.current.push(marker);
         });
 
-        if (okItems.length > 0) {
+        // 🎯 [Centering Strategy]
+        // 1. 키워드가 있으면 결과 마커들을 모두 보여주는 범위로 (setBounds)
+        // 2. 키워드 없이 '내 주변' 모드면 내 위치 중심 + 적절한 줌 레벨 (setCenter)
+        if (keyword?.trim() && okItems.length > 0) {
           map.setBounds(bounds);
         } else {
-          map.setCenter(new kakao.maps.LatLng(basePos.lat, basePos.lng));
+          const center = new kakao.maps.LatLng(basePos.lat, basePos.lng);
+          map.setCenter(center);
+          map.setLevel(4); // 약 500m~1km 범위
         }
       } catch (e) {
         console.error(e);
